@@ -29,4 +29,4 @@ This project is a joint effort of members within Team Wonderland:
 - Beiqi(Nick) Guan
 - Zhi(Zach) Ai
 - Jiawen Liang
-- Luqing(Lunar) Zhang
+- Luqing(Luna) Zhang
