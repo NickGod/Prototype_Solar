@@ -94,13 +94,16 @@ public class OVRPlayerController : MonoBehaviour
 	private bool prevHatRight = false;
 	private float SimulationRate = 60f;
 
+
+
 	void Start()
 	{
 		// Add eye-depth as a camera offset from the player controller
 		var p = CameraRig.transform.localPosition;
 		p.z = OVRManager.profile.eyeDepth;
 		CameraRig.transform.localPosition = p;
-	}
+   
+    }
 
 	void Awake()
 	{
@@ -178,8 +181,9 @@ public class OVRPlayerController : MonoBehaviour
 		}
 
 		UpdateMovement();
+       
 
-		Vector3 moveDirection = Vector3.zero;
+        Vector3 moveDirection = Vector3.zero;
 
 		float motorDamp = (1.0f + (Damping * SimulationRate * Time.deltaTime));
 
@@ -228,6 +232,7 @@ public class OVRPlayerController : MonoBehaviour
 		bool moveBack = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow);
 
 		bool dpad_move = false;
+        
 
 		if (OVRInput.Get(OVRInput.Button.DpadUp))
 		{
