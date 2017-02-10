@@ -11,6 +11,7 @@ public class planet_behavior : MonoBehaviour {
     public float public_spin_spd;
     public enum planet_type {class_model, real_planet};
     public planet_type my_type;
+    public bool highlighted;
 
     // put myself on trail
     // moving on the trail
@@ -54,16 +55,13 @@ public class planet_behavior : MonoBehaviour {
 
     }
 
-    //small_model_rotate will directly put the model on to the line_renderer of the track
-    //every call rotator+1
-    
-    protected void small_model_rotate() {
-          //  int max_index = _that_renderer.
-    }
-
-
     protected void scale_me() {
         transform.localScale = my_scale * Vector3.one;
+    }
+
+    protected void highlight(){
+        Material mat = GetComponent<MeshRenderer>().material; 
+        mat.shader = highlighted?Shader.Find("Custom/RimSelection") : Shader.Find("Standard");
     }
 }
 
