@@ -12,25 +12,28 @@ public class hand : MonoBehaviour {
     float _inventoryTime = 0.2f;
     static bool _isInventory = false;
 
-    List<Transform> trfList = null;
+    List<Transform> trfList = new List<Transform>();
     Transform _grabbedParent;
     Transform _grabbed;
 
     static Transform _onEditting = null;
 
+    //States
+    bool _isFist = false;
+    bool _isGrabbing = false;
     //resizing
     static float _originDistance = 0.0f;
     static bool _onResizing = false;
 
     public bool RightHand;
     // Update is called once per frame
+
     void Update() {
-        transform.localPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
-        transform.localRotation = OVRInput.GetLocalControllerRotation(OVRInput.Controller.RTouch);
-
-
         if (!RightHand) {
             //for left hand
+            transform.localPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
+            transform.localRotation = OVRInput.GetLocalControllerRotation(OVRInput.Controller.LTouch);
+
 
             //calling inventory based on left hand index
             if (IsInventoryUp()) {
@@ -43,12 +46,15 @@ public class hand : MonoBehaviour {
             }
             if (_inventoryTimer >= _inventoryTime && !_isInventory) {
                 // this function only call once for each index up
-                Debug.Log("Inventory on");
+                //Debug.Log("Inventory on");
                 //TODO: inventory on animation and related mechanics here
                 _isInventory = true;
             }
         } else {
             //for right hand
+            transform.localPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
+            transform.localRotation = OVRInput.GetLocalControllerRotation(OVRInput.Controller.RTouch);
+
 
             //resizing
             if (IsBothFist() && _onEditting && !_onResizing) {
@@ -64,21 +70,18 @@ public class hand : MonoBehaviour {
                 _originDistance = 0.0f;
                 _onResizing = false;
             }
-
             
             //Axis rotation
             if (_onEditting) {
                 SetAxis();
             }
-
-
+            
             //Rotating speed
             if (IsAxis2Touched() && _onEditting) {
                 SetSpinSpeed();
             }
-
-
-                //test
+            
+            //test
             if (IsAxis2Touched()) {
                 SetSpinSpeed();
                 Debug.Log("Spin: " + _spinSpeed);
@@ -92,23 +95,37 @@ public class hand : MonoBehaviour {
         }
 
         //grabbing
-        if (IsFist()) {
+        _isGrabbing = false;
+        if (IsFist() && !_isFist) {
+            _isFist = true;
+            _isGrabbing = true;
+        }
+        if (_isGrabbing) {
+            Debug.Log("Naaaa: " + name);
             if (!_onEditting) {
                 if (_grabbed == null) {
                     _grabbed = GetClosest();
-                    if (_grabbed.parent == _otherHand) {
-                        _grabbedParent = _otherHand.GetComponent<hand>().GetGrabbedParent();
-                        _otherHand.GetComponent<hand>().LoseControl();
-                    } else {
-                        _grabbedParent = _grabbed.parent;
+                    if (_grabbed) {
+                        if (_grabbed.parent == _otherHand) {
+                            _grabbedParent = _otherHand.GetComponent<hand>().GetGrabbedParent();
+                            _otherHand.GetComponent<hand>().LoseControl();
+                        } else {
+                            _grabbedParent = _grabbed.parent;
+                        }
+                        _grabbed.parent = transform;
                     }
-                    _grabbed.parent = transform;
                 }
             } else {
                 //TODO: grabbing based on if _onEditting is null and what you are grabbing
             }
-        } else {
-            LoseControl();
+        } 
+        
+        if (!IsFist()){
+            if (_grabbed) {
+                _grabbed.parent = _grabbedParent;
+                LoseControl();
+            }
+            _isFist = false;
         }
 
     }
@@ -180,6 +197,22 @@ public class hand : MonoBehaviour {
             _spinSpeed += OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x * Time.deltaTime;
         }
     }
+
+    //bool IsFistUp() {
+    //    bool index;
+    //    bool middle;
+    //    bool thumb;
+    //    if (RightHand) {
+    //        index = OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger);
+    //        middle = OVRInput.GetDown(OVRInput.Button.SecondaryHandTrigger);
+    //        thumb = OVRInput.GetDown(OVRInput.Touch.SecondaryThumbRest) || OVRInput.GetDown(OVRInput.Touch.One) || OVRInput.GetDown(OVRInput.Touch.Two);
+    //    } else {
+    //        index = OVRInput.GetDown(OVRInput.Button.PrimaryIndexTrigger);
+    //        middle = OVRInput.GetDown(OVRInput.Button.PrimaryHandTrigger);
+    //        thumb = OVRInput.GetDown(OVRInput.Touch.PrimaryThumbRest) || OVRInput.GetDown(OVRInput.Touch.Three) || OVRInput.GetDown(OVRInput.Touch.Four);
+    //    }
+    //    return index && middle && thumb;
+    //}
 
     bool IsFist() {
         OVRInput.Button indexFinger;
