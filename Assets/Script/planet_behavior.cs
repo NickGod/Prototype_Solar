@@ -22,6 +22,9 @@ public class planet_behavior : MonoBehaviour {
     protected Quaternion _trail_rotation;
     protected float _start_time;
 
+    private LineRenderer _that_renderer;
+    private int _rotator=0;
+
 
 
     protected bool self_init(GameObject target) {
@@ -32,21 +35,32 @@ public class planet_behavior : MonoBehaviour {
         _yradius = _current_trail.YRadius;
         //if it has parent, scale it
         transform.position = _trail_rotation * (_yradius * Vector3.up) + _center;
+        _that_renderer = target_trail.gameObject.GetComponent<LineRenderer>();
         return true;
     }
 
-    protected void trail_rotate(float xradius, float yradius, float spd, Vector3 center) {
-        Vector3 pos_vector =new Vector3(xradius * Mathf.Sin(spd * Time.time), yradius * Mathf.Cos(spd * Time.time), 0f);
+    protected void trail_rotate(float xradius, float yradius, float spd) {
         _trail_rotation = target_trail.transform.rotation;
-        pos_vector = _trail_rotation * (pos_vector + center);
+        Vector3 pos_vector =new Vector3(xradius * Mathf.Sin(spd * Time.time), yradius * Mathf.Cos(spd * Time.time), 0f);
         Transform _parent = target_trail.transform;
         while (_parent.parent != null)
         {
-           pos_vector *= _parent.parent.localScale.x;
+            pos_vector *= _parent.parent.localScale.x;
             _parent = _parent.parent;
         }
-        transform.position = center + pos_vector;
+        pos_vector = _trail_rotation * pos_vector;
+        _center = target_trail.transform.position;
+        transform.position =  _center +pos_vector;
+
     }
+
+    //small_model_rotate will directly put the model on to the line_renderer of the track
+    //every call rotator+1
+    
+    protected void small_model_rotate() {
+          //  int max_index = _that_renderer.
+    }
+
 
     protected void scale_me() {
         transform.localScale = my_scale * Vector3.one;
