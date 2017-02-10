@@ -39,12 +39,10 @@ public class planet_behavior : MonoBehaviour {
         return true;
     }
 
-    float mul_vector = 0.02f;
     protected void trail_rotate(float xradius, float yradius, float spd) {
         _trail_rotation = target_trail.transform.rotation;
         Vector3 pos_vector =new Vector3(xradius * Mathf.Sin(spd * Time.time), yradius * Mathf.Cos(spd * Time.time), 0f);
         Transform _parent = target_trail.transform;
-        //multiply parents' scale
         while (_parent.parent != null)
         {
             pos_vector *= _parent.parent.localScale.x;
@@ -52,8 +50,7 @@ public class planet_behavior : MonoBehaviour {
         }
         pos_vector = _trail_rotation * pos_vector;
         _center = target_trail.transform.position;
-
-        transform.position += mul_vector *(_center +pos_vector -transform.position);
+        transform.position =  _center +pos_vector;
 
     }
 
