@@ -30,9 +30,9 @@ public class hand : MonoBehaviour {
 
     void Update() {
         if (!RightHand) {
-            //for left hand
-            transform.localPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
-            transform.localRotation = OVRInput.GetLocalControllerRotation(OVRInput.Controller.LTouch);
+            ////for left hand
+            //transform.localPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
+            //transform.localRotation = OVRInput.GetLocalControllerRotation(OVRInput.Controller.LTouch);
 
 
             //calling inventory based on left hand index
@@ -41,7 +41,7 @@ public class hand : MonoBehaviour {
             } else {
                 _inventoryTimer = 0.0f;
                 _isInventory = false;
-                Debug.Log("Inventory off");
+                //Debug.Log("Inventory off");
                 //TODO: inventory off animation and related mehanics here
             }
             if (_inventoryTimer >= _inventoryTime && !_isInventory) {
