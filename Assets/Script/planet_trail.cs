@@ -3,16 +3,18 @@ using System.Collections;
 
 public class planet_trail : MonoBehaviour {    
     public int SegmentCount;
-    [Range(1f,3f)]
+    [Range(1f,8f)]
     public float XRadius;
-    [Range(1f, 3f)]
+    [Range(1f, 10f)]
     public float YRadius;
+    public bool occupied;
     
 
     private LineRenderer _MyTrail;
     
     void Awake () {
         _MyTrail = GetComponent<LineRenderer>();
+        occupied = false;
 	}
      /// <summary>
      /// generate an eclipse trail with X line segments
@@ -22,6 +24,8 @@ public class planet_trail : MonoBehaviour {
         Vector3 _CenterPosition = transform.position;
         _MyTrail.SetVertexCount(SegmentCount + 1);
         _MyTrail.SetPositions(get_eclipse(XRadius, YRadius, SegmentCount, _CenterPosition));
+        Color my_color = Random.ColorHSV();
+        _MyTrail.SetColors(my_color, my_color);
     }
 
     /// <summary>
