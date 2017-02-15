@@ -7,6 +7,7 @@ public class planet_trail : MonoBehaviour {
     public float XRadius;
     [Range(1f, 3f)]
     public float YRadius;
+    
 
     private LineRenderer _MyTrail;
     
@@ -36,7 +37,7 @@ public class planet_trail : MonoBehaviour {
         Vector3[] interpolates = new Vector3[x+1];
         for (int i = 0; i < x; i++) {
             float _theta = i * _delta;
-            interpolates[i] = center_pos + new Vector3( a * Mathf.Sin(_theta), b * Mathf.Cos(_theta), 0);
+            interpolates[i] = new Vector3( a * Mathf.Sin(_theta), b * Mathf.Cos(_theta), 0);
         }
         interpolates[x] = interpolates[0];
         return interpolates;
