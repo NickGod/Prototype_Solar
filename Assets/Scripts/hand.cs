@@ -310,6 +310,11 @@ public class hand : MonoBehaviour {
             _grabbed = null;
             _grabbedParent = null;
         }
+    }
 
+    public void GetOutOfList(Transform trf) {
+        if (trfList.Contains(trf)) {
+            trfList.Remove(trf);
+        }
     }
 }
