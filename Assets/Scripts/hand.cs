@@ -3,7 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class hand : MonoBehaviour {
-    public List<Transform> _tarList;
+    public Transform _rightHand;
+    Transform _rightIndex;
     // accept three elements, first is inventory slot
     // second is demonstrate spot
     // third is orbitting slot
@@ -31,15 +32,24 @@ public class hand : MonoBehaviour {
     static float _originDistance = 0.0f;
     static bool _onResizing = false;
 
-    public bool RightHand;
+    public bool isRightHand;
     // Update is called once per frame
 
     // automatic move back
     bool isMoving = false;
     Transform movingTar = null;
 
+    void Start() {
+        Transform _indexParent = _rightHand.GetChild(0).GetChild(0).GetChild(0);
+        foreach(Transform finger in _indexParent) {
+            if (finger.name.Contains("index")) {
+                _rightIndex = finger;
+            }
+        }
+    }
+
     void Update() {
-        if (!RightHand) {
+        if (!isRightHand) {
             ////for left hand
 
 
@@ -88,7 +98,7 @@ public class hand : MonoBehaviour {
             
             //Axis rotation
             if (_isEditting) {
-                _editTrf.localRotation = SetAxis();
+                _editTrf.up = SetAxis();
             }
             
             //Rotating speed
@@ -102,6 +112,8 @@ public class hand : MonoBehaviour {
                 //TODO: fly to orbit
                 planet_behavior pb = _editTrf.GetComponent<planet_behavior>();
                 Trailmanager.instance.send_to_trail(pb);
+                _isEditting = false;
+                _editTrf = null;
             }
 
             //TODO: shooting
@@ -131,20 +143,25 @@ public class hand : MonoBehaviour {
             _isGrabbing = true;
         }
         if (_isGrabbing) {
-            _isEditting = false;
             if (_grabbed == null) {
                 Transform target = GetClosest();
                 //test luna merge
-                _grabbed = target.GetComponent<planet_behavior>().OnGrab();
-                if (_grabbed) {
-                    if (_grabbed == _editTrf) {
-                        _editTrf = null;
+                if (target) {
+                    _isEditting = false;
+                    _grabbed = target.GetComponent<planet_behavior>().OnGrab();
+                    if (!trfList.Contains(_grabbed)) {
+                        trfList.Add(_grabbed);
                     }
-                    if (_grabbed.parent == _otherHand) {
-                        _otherHand.GetComponent<hand>().LoseControl();
+                    if (_grabbed) {
+                        if (_grabbed == _editTrf) {
+                            _editTrf = null;
+                        }
+                        if (_grabbed.parent == _otherHand) {
+                            _otherHand.GetComponent<hand>().LoseControl();
+                        }
+                        _grabbedParent = null;
+                        _grabbed.parent = transform;
                     }
-                    _grabbedParent = null;
-                    _grabbed.parent = transform;
                 }
             }
         } 
@@ -185,22 +202,22 @@ public class hand : MonoBehaviour {
     }
 
     bool IsInventoryUp() {
-        if (!RightHand) {
+        if (!isRightHand) {
             return !(OVRInput.Get(OVRInput.Touch.PrimaryIndexTrigger) || OVRInput.Get(OVRInput.NearTouch.PrimaryIndexTrigger));
         } else {
             return false;
         }
     }
 
-    Quaternion SetAxis() {
-        if (RightHand) {
-            return transform.rotation;
+    Vector3 SetAxis() {
+        if (isRightHand) {
+            return transform.up;
         }
-        return Quaternion.identity;
+        return Vector3.up;
     }
 
     bool IsShooting() {
-        if (RightHand) {
+        if (isRightHand) {
             bool thumbRelease = !(OVRInput.Get(OVRInput.Touch.SecondaryThumbRest) || OVRInput.Get(OVRInput.NearTouch.SecondaryThumbButtons));
             bool indexRelease = !(OVRInput.Get(OVRInput.Touch.SecondaryIndexTrigger) || OVRInput.Get(OVRInput.NearTouch.SecondaryIndexTrigger));
 
@@ -214,7 +231,7 @@ public class hand : MonoBehaviour {
     }
 
     bool IsAxis2Touched() {
-        if (RightHand) {
+        if (isRightHand) {
             return OVRInput.Get(OVRInput.Touch.SecondaryThumbstick);
         } else {
             return false;
@@ -222,7 +239,7 @@ public class hand : MonoBehaviour {
     }
 
     void SetSpinSpeed() {
-        if (RightHand) {
+        if (isRightHand) {
             _spinSpeed += OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x * Time.deltaTime;
             if (_spinSpeed > _spinVeloMax) {
                 _spinSpeed = _spinVeloMax;
@@ -253,7 +270,7 @@ public class hand : MonoBehaviour {
         OVRInput.Button middleFinger;
 
         bool thumb;
-        if (RightHand) {
+        if (isRightHand) {
             indexFinger = OVRInput.Button.SecondaryIndexTrigger;
             middleFinger = OVRInput.Button.SecondaryHandTrigger;
             thumb = OVRInput.Get(OVRInput.Touch.SecondaryThumbRest) || OVRInput.Get(OVRInput.Touch.One) || OVRInput.Get(OVRInput.Touch.Two);
