@@ -5,6 +5,8 @@ using System.Collections.Generic;
 public class hand : MonoBehaviour {
     public Transform _rightHand;
     Transform _rightIndex;
+
+    bool _isShooting = false;
     // accept three elements, first is inventory slot
     // second is demonstrate spot
     // third is orbitting slot
@@ -39,13 +41,13 @@ public class hand : MonoBehaviour {
     bool isMoving = false;
     Transform movingTar = null;
 
-    void Start() {
-        //Transform _indexParent = _rightHand.GetChild(0).GetChild(0).GetChild(0);
-        //foreach(Transform finger in _indexParent) {
-        //    if (finger.name.Contains("index")) {
-        //        _rightIndex = finger;
-        //    }
-        //}
+    void LateStart() {
+        Transform _indexParent = _rightHand.GetChild(0).GetChild(0).GetChild(0);
+        foreach (Transform finger in _indexParent) {
+            if (finger.name.Contains("index")) {
+                _rightIndex = finger;
+            }
+        }
     }
 
     void Update() {
@@ -117,8 +119,24 @@ public class hand : MonoBehaviour {
             }
 
             //TODO: shooting
+            _isShooting = false;
             if (IsShooting()) {
-                
+
+                RaycastHit hit;
+                Ray shootingRay = new Ray(_rightIndex.position, _rightIndex.right);
+                Vector3[] positions = new Vector3[2] { _rightIndex.position, _rightIndex.right * 1000f + _rightIndex.position };
+                GetComponent<LineRenderer>().SetPositions(positions);
+
+                if (Physics.Raycast(shootingRay, out hit)) {
+                    planet_behavior pb = hit.collider.gameObject.GetComponent<planet_behavior>();
+                    if (pb && pb.my_type == planet_behavior.planet_type.real_planet) {
+                        pb.delete_me();
+                        
+                    }
+                }
+            }
+            if (!IsShooting()){
+                _isShooting = false;
             }
  
 
