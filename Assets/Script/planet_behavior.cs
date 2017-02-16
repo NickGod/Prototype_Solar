@@ -174,5 +174,12 @@ public class planet_behavior : MonoBehaviour {
         return _dis >= max_distance ? my_scale: (c_scale+_slope * _dis);
     }
     #endregion
+
+    private void OnDestroy()
+    {
+        GameObject exp=Instantiate(Resources.Load("explosion")) as GameObject;
+        exp.transform.position = transform.position;
+        Destroy(exp, 1f);
+    }
 }
 
