@@ -5,8 +5,6 @@ using System.Collections.Generic;
 public class hand : MonoBehaviour {
     public Transform _rightHand;
     Transform _rightIndex;
-
-    bool _isShooting = false;
     // accept three elements, first is inventory slot
     // second is demonstrate spot
     // third is orbitting slot
@@ -25,7 +23,7 @@ public class hand : MonoBehaviour {
     public Transform _grabbed;
 
     static bool _isEditting = false;
-    public Transform _editTrf = null;
+    static Transform _editTrf = null;
 
     //States
     bool _isFist = false;
@@ -41,14 +39,17 @@ public class hand : MonoBehaviour {
     bool isMoving = false;
     Transform movingTar = null;
 
-    void LateStart() {
-        Transform _indexParent = _rightHand.GetChild(0).GetChild(0).GetChild(0);
-        foreach (Transform finger in _indexParent) {
-            if (finger.name.Contains("index")) {
-                _rightIndex = finger;
-            }
-        }
-    }
+    //void Start() {
+    //    if (isRightHand) {
+    //        Transform _indexParent = _rightHand;
+    //        foreach (Transform finger in _indexParent) {
+    //            Debug.Log(finger.name);
+    //            if (finger.name.Contains("index")) {
+    //                _rightIndex = finger;
+    //            }
+    //        }
+    //    }
+    //}
 
     void Update() {
         if (!isRightHand) {
@@ -87,15 +88,21 @@ public class hand : MonoBehaviour {
             if (IsBothFist() && _isEditting && !_onResizing) {
                 _onResizing = true;
                 _originDistance = Vector3.Distance(transform.position, _otherHand.position);
-            } else {
+            }
+
+            if (!IsBothFist()){
                 _onResizing = false;
                 _originDistance = 0.0f;
             }
         
             if (_onResizing) {
-
-                _editTrf.GetComponent<planet_behavior>().my_scale = 
-                    Vector3.Distance(transform.position, _otherHand.position) / _originDistance;
+                float realScale = Vector3.Distance(transform.position, _otherHand.position) / _originDistance;
+                if (realScale >= 1.5f) {
+                    realScale = 1.49f;
+                } else if (realScale <= 0.5f) {
+                    realScale = 0.51f;
+                }
+                _editTrf.GetComponent<planet_behavior>().my_scale = realScale;
             }
             
             //Axis rotation
@@ -113,30 +120,14 @@ public class hand : MonoBehaviour {
             if (OVRInput.GetDown(OVRInput.Button.Two) && _isEditting) {
                 //TODO: fly to orbit
                 planet_behavior pb = _editTrf.GetComponent<planet_behavior>();
-                Trailmanager.instance.send_to_trail(pb);
+                Trailmanager.instance.send_to_trail(pb,this);
                 _isEditting = false;
                 _editTrf = null;
             }
 
             //TODO: shooting
-            _isShooting = false;
             if (IsShooting()) {
-
-                RaycastHit hit;
-                Ray shootingRay = new Ray(_rightIndex.position, _rightIndex.right);
-                Vector3[] positions = new Vector3[2] { _rightIndex.position, _rightIndex.right * 1000f + _rightIndex.position };
-                GetComponent<LineRenderer>().SetPositions(positions);
-
-                if (Physics.Raycast(shootingRay, out hit)) {
-                    planet_behavior pb = hit.collider.gameObject.GetComponent<planet_behavior>();
-                    if (pb && pb.my_type == planet_behavior.planet_type.real_planet) {
-                        pb.delete_me();
-                        
-                    }
-                }
-            }
-            if (!IsShooting()){
-                _isShooting = false;
+                
             }
  
 
@@ -323,6 +314,11 @@ public class hand : MonoBehaviour {
                 //if fly to editting spot, _editTrf should be set as the grabbed obj
                 //Question? should we change the isEditting to true after the planet is exactly in the place
                 _editTrf = _grabbed.GetComponent<planet_behavior>().OnRelease(_editTrf, this);
+
+                //TODO: do current test
+                if (trfList.Contains(_editTrf)) {
+                    trfList.Remove(_editTrf);
+                }
                 _isEditting = _editTrf ? true : false;
             }
             _grabbed = null;
