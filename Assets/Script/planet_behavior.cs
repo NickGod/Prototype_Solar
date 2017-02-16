@@ -108,11 +108,13 @@ public class planet_behavior : MonoBehaviour {
                     else
                     {
                         Destroy(gameObject);
+                        hand_to_call.GetOutOfList(gameObject.transform);
                         return edit_trf;
                     }
                 }
                 //func fly_to(target_point)
                 Destroy(gameObject);
+                hand_to_call.GetOutOfList(gameObject.transform);
                 Debug.Log("Goes back to inventory.");
                 return edit_trf;
         

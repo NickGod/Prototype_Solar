@@ -8,7 +8,7 @@ public class hand : MonoBehaviour {
     // accept three elements, first is inventory slot
     // second is demonstrate spot
     // third is orbitting slot
-
+ 
     float _spinSpeed = 0.0f;
     float _spinVeloMax = 5.0f;
 
@@ -18,12 +18,12 @@ public class hand : MonoBehaviour {
     float _inventoryTime = 0.2f;
     static bool _isInventory = false;
 
-    List<Transform> trfList = new List<Transform>();
+    public List<Transform> trfList = new List<Transform>();
     Transform _grabbedParent;
-    Transform _grabbed;
+    public Transform _grabbed;
 
     static bool _isEditting = false;
-    static Transform _editTrf = null;
+    public Transform _editTrf = null;
 
     //States
     bool _isFist = false;
@@ -304,7 +304,7 @@ public class hand : MonoBehaviour {
                 //to specific spot(either editting spot or inventory or orbit trail), then update onEditting info
                 //if fly to editting spot, _editTrf should be set as the grabbed obj
                 //Question? should we change the isEditting to true after the planet is exactly in the place
-                _editTrf = _grabbed.GetComponent<planet_behavior>().OnRelease(_editTrf);
+                _editTrf = _grabbed.GetComponent<planet_behavior>().OnRelease(_editTrf, this);
                 _isEditting = _editTrf ? true : false;
             }
             _grabbed = null;
