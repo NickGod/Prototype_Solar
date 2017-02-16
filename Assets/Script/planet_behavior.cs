@@ -97,11 +97,11 @@ public class planet_behavior : MonoBehaviour {
                 if (edit_trf == null)
                 {
                     //should go to manipulate spot
-                    if (Mathf.Abs(transform.localScale.x - my_scale) < 1e-7)
+                    if (Mathf.Abs(transform.localScale.x - my_scale) < 1e-5)
                     {
                         my_type = planet_type.manipulating;
                         //func/coroutine? fly_to(target point)
-                        transform.position = Vector3.one;
+                        transform.position = 0.5f*Vector3.one;
                         Debug.Log("Goes to manipulate.");
                         return transform;
                     }

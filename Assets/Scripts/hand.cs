@@ -85,15 +85,21 @@ public class hand : MonoBehaviour {
             if (IsBothFist() && _isEditting && !_onResizing) {
                 _onResizing = true;
                 _originDistance = Vector3.Distance(transform.position, _otherHand.position);
-            } else {
+            }
+
+            if (!IsBothFist()){
                 _onResizing = false;
                 _originDistance = 0.0f;
             }
         
             if (_onResizing) {
-
-                _editTrf.GetComponent<planet_behavior>().my_scale = 
-                    Vector3.Distance(transform.position, _otherHand.position) / _originDistance;
+                float realScale = Vector3.Distance(transform.position, _otherHand.position) / _originDistance;
+                if (realScale >= 1.5f) {
+                    realScale = 1.49f;
+                } else if (realScale <= 0.5f) {
+                    realScale = 0.51f;
+                }
+                _editTrf.GetComponent<planet_behavior>().my_scale = realScale;
             }
             
             //Axis rotation
@@ -305,6 +311,11 @@ public class hand : MonoBehaviour {
                 //if fly to editting spot, _editTrf should be set as the grabbed obj
                 //Question? should we change the isEditting to true after the planet is exactly in the place
                 _editTrf = _grabbed.GetComponent<planet_behavior>().OnRelease(_editTrf, this);
+
+                //TODO: do current test
+                if (trfList.Contains(_editTrf)) {
+                    trfList.Remove(_editTrf);
+                }
                 _isEditting = _editTrf ? true : false;
             }
             _grabbed = null;
