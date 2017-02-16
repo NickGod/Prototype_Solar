@@ -19,6 +19,7 @@ public class hand : MonoBehaviour {
     static bool _isInventory = false;
 
     public List<Transform> trfList = new List<Transform>();
+
     Transform _grabbedParent;
     public Transform _grabbed;
 
@@ -153,6 +154,13 @@ public class hand : MonoBehaviour {
         }
         if (_isGrabbing) {
             if (_grabbed == null) {
+                int count = trfList.Count;
+                for (int i = count - 1; i >= 0; i--) {
+                    Transform trf = trfList[i];
+                    if (trf == null || !trf.gameObject.activeSelf) {
+                        trfList.Remove(trf);
+                    }
+                }
                 Transform target = GetClosest();
                 //test luna merge
                 if (target) {
@@ -315,10 +323,10 @@ public class hand : MonoBehaviour {
                 //Question? should we change the isEditting to true after the planet is exactly in the place
                 _editTrf = _grabbed.GetComponent<planet_behavior>().OnRelease(_editTrf, this);
 
-                //TODO: do current test
-                if (trfList.Contains(_editTrf)) {
-                    trfList.Remove(_editTrf);
-                }
+                ////TODO: do current test
+                //if (trfList.Contains(_editTrf)) {
+                //    trfList.Remove(_editTrf);
+                //}
                 _isEditting = _editTrf ? true : false;
             }
             _grabbed = null;

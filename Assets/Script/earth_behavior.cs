@@ -16,7 +16,7 @@ public class earth_behavior : planet_behavior {
         switch (my_type) {
             case planet_type.class_model:
                 rotate_on_trail();
-                transform.GetChild(3).Rotate(self_spin_spd * Vector3.up);
+                transform.GetChild(3).Rotate(-self_spin_spd * Vector3.up);
                 if (Input.GetKeyDown(KeyCode.L)) {
                     OnGrab().GetComponent<earth_behavior>().highlighted=true;
                 }
@@ -30,7 +30,7 @@ public class earth_behavior : planet_behavior {
                 }
                 return;
             case planet_type.manipulating:
-                transform.GetChild(3).Rotate(self_spin_spd * Vector3.up);
+                transform.GetChild(3).Rotate(-self_spin_spd * Vector3.up);
                 update_UI();
                 scale_me();
                 transform.position += 0.02f*(Vector3.one * 0.5f - transform.position);
@@ -41,7 +41,7 @@ public class earth_behavior : planet_behavior {
                 return;
             case planet_type.real_planet:
                 //** Add one condition on whether it is on hand
-                transform.GetChild(3).Rotate(self_spin_spd * Vector3.up);
+                transform.GetChild(3).Rotate(-self_spin_spd * Vector3.up);
                 rotate_on_trail();
                 update_UI();
                 return;
