@@ -3,9 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class hand : MonoBehaviour {
+    public List<Transform> _tarList;
+    // accept three elements, first is inventory slot
+    // second is demonstrate spot
+    // third is orbitting slot
 
     float _spinSpeed = 0.0f;
-    Quaternion _objRotation;
+    float _spinVeloMax = 5.0f;
+
     public Transform _otherHand;
 
     float _inventoryTimer = 0;
@@ -16,7 +21,8 @@ public class hand : MonoBehaviour {
     Transform _grabbedParent;
     Transform _grabbed;
 
-    static Transform _onEditting = null;
+    static bool _isEditting = false;
+    static Transform _editTrf = null;
 
     //States
     bool _isFist = false;
@@ -28,9 +34,15 @@ public class hand : MonoBehaviour {
     public bool RightHand;
     // Update is called once per frame
 
+    // automatic move back
+    bool isMoving = false;
+    Transform movingTar = null;
+
     void Update() {
         if (!RightHand) {
             ////for left hand
+
+
             //transform.localPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
             //transform.localRotation = OVRInput.GetLocalControllerRotation(OVRInput.Controller.LTouch);
 
@@ -40,58 +52,76 @@ public class hand : MonoBehaviour {
                 _inventoryTimer += Time.deltaTime;
             } else {
                 _inventoryTimer = 0.0f;
+                if (_isInventory) {
+                    //TODO: inventory off animation and related mehanics here
+                    transform.GetChild(0).gameObject.SetActive(false);
+                }
                 _isInventory = false;
-                //Debug.Log("Inventory off");
-                //TODO: inventory off animation and related mehanics here
             }
             if (_inventoryTimer >= _inventoryTime && !_isInventory) {
                 // this function only call once for each index up
-                //Debug.Log("Inventory on");
+                // there is up time for inventory to appear
                 //TODO: inventory on animation and related mechanics here
                 _isInventory = true;
+                transform.GetChild(0).gameObject.SetActive(true);
             }
         } else {
             //for right hand
-            transform.localPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
-            transform.localRotation = OVRInput.GetLocalControllerRotation(OVRInput.Controller.RTouch);
+            //transform.localPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
+            //transform.localRotation = OVRInput.GetLocalControllerRotation(OVRInput.Controller.RTouch);
 
 
             //resizing
-            if (IsBothFist() && _onEditting && !_onResizing) {
+            if (IsBothFist() && _isEditting && !_onResizing) {
                 _onResizing = true;
                 _originDistance = Vector3.Distance(transform.position, _otherHand.position);
-            } 
+            } else {
+                _onResizing = false;
+                _originDistance = 0.0f;
+            }
         
             if (_onResizing) {
-                _onEditting.localScale = Vector3.Distance(transform.position, _otherHand.position) / _originDistance * Vector3.one;
-            }
 
-            if (!IsBothFist()) {
-                _originDistance = 0.0f;
-                _onResizing = false;
+                _editTrf.GetComponent<planet_behavior>().my_scale = 
+                    Vector3.Distance(transform.position, _otherHand.position) / _originDistance;
             }
             
             //Axis rotation
-            if (_onEditting) {
-                SetAxis();
+            if (_isEditting) {
+                _editTrf.localRotation = SetAxis();
             }
             
             //Rotating speed
-            if (IsAxis2Touched() && _onEditting) {
+            if (IsAxis2Touched() && _isEditting) {
                 SetSpinSpeed();
+                _editTrf.GetComponent<planet_behavior>().self_spin_spd = _spinSpeed;
+                //TODO: assign spin speed to editting obj
             }
-            
-            //test
-            if (IsAxis2Touched()) {
-                SetSpinSpeed();
-                Debug.Log("Spin: " + _spinSpeed);
+
+            if (OVRInput.GetDown(OVRInput.Button.Two) && _isEditting) {
+                //TODO: fly to orbit
+                planet_behavior pb = _editTrf.GetComponent<planet_behavior>();
+                Trailmanager.instance.send_to_trail(pb);
             }
+
+            //TODO: shooting
             if (IsShooting()) {
-                Debug.Log("Shooting");
+                
             }
-            if (IsFist()) {
-                Debug.Log("Fist");
-            }
+ 
+
+            
+            ////test
+            //if (IsAxis2Touched()) {
+            //    SetSpinSpeed();
+            //    Debug.Log("Spin: " + _spinSpeed);
+            //}
+            //if (IsShooting()) {
+            //    Debug.Log("Shooting");
+            //}
+            //if (IsFist()) {
+            //    Debug.Log("Fist");
+            //}
         }
 
         //grabbing
@@ -101,22 +131,21 @@ public class hand : MonoBehaviour {
             _isGrabbing = true;
         }
         if (_isGrabbing) {
-            Debug.Log("Naaaa: " + name);
-            if (!_onEditting) {
-                if (_grabbed == null) {
-                    _grabbed = GetClosest();
-                    if (_grabbed) {
-                        if (_grabbed.parent == _otherHand) {
-                            _grabbedParent = _otherHand.GetComponent<hand>().GetGrabbedParent();
-                            _otherHand.GetComponent<hand>().LoseControl();
-                        } else {
-                            _grabbedParent = _grabbed.parent;
-                        }
-                        _grabbed.parent = transform;
+            _isEditting = false;
+            if (_grabbed == null) {
+                Transform target = GetClosest();
+                //test luna merge
+                _grabbed = target.GetComponent<planet_behavior>().OnGrab();
+                if (_grabbed) {
+                    if (_grabbed == _editTrf) {
+                        _editTrf = null;
                     }
+                    if (_grabbed.parent == _otherHand) {
+                        _otherHand.GetComponent<hand>().LoseControl();
+                    }
+                    _grabbedParent = null;
+                    _grabbed.parent = transform;
                 }
-            } else {
-                //TODO: grabbing based on if _onEditting is null and what you are grabbing
             }
         } 
         
@@ -163,11 +192,11 @@ public class hand : MonoBehaviour {
         }
     }
 
-    void SetAxis() {
+    Quaternion SetAxis() {
         if (RightHand) {
-            float yAngle = transform.localRotation.eulerAngles.y;
-            _objRotation = Quaternion.AngleAxis(yAngle, Vector3.right);
+            return transform.rotation;
         }
+        return Quaternion.identity;
     }
 
     bool IsShooting() {
@@ -195,6 +224,11 @@ public class hand : MonoBehaviour {
     void SetSpinSpeed() {
         if (RightHand) {
             _spinSpeed += OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x * Time.deltaTime;
+            if (_spinSpeed > _spinVeloMax) {
+                _spinSpeed = _spinVeloMax;
+            } else if (_spinSpeed < -_spinVeloMax) {
+                _spinSpeed = -_spinVeloMax;
+            }
         }
     }
 
@@ -248,8 +282,14 @@ public class hand : MonoBehaviour {
 
     public void LoseControl() {
         if (_grabbed) {
-            //TODO: check the current parent, if it is not hand, then the object will fly
-            //to specific spot(either editting center or inventory), then update onEditting info
+            if (_grabbed.parent != transform && _grabbed.parent != _otherHand) {
+                //TODO: check the current parent, if it is not hand, then the object will fly
+                //to specific spot(either editting spot or inventory or orbit trail), then update onEditting info
+                //if fly to editting spot, _editTrf should be set as the grabbed obj
+                //Question? should we change the isEditting to true after the planet is exactly in the place
+                _editTrf = _grabbed.GetComponent<planet_behavior>().OnRelease(_editTrf);
+                _isEditting = _editTrf ? true : false;
+            }
             _grabbed = null;
             _grabbedParent = null;
         }
