@@ -23,7 +23,7 @@ public class hand : MonoBehaviour {
     public Transform _grabbed;
 
     static bool _isEditting = false;
-    public Transform _editTrf = null;
+    static Transform _editTrf = null;
 
     //States
     bool _isFist = false;
@@ -40,12 +40,15 @@ public class hand : MonoBehaviour {
     Transform movingTar = null;
 
     void Start() {
-        //Transform _indexParent = _rightHand.GetChild(0).GetChild(0).GetChild(0);
-        //foreach(Transform finger in _indexParent) {
-        //    if (finger.name.Contains("index")) {
-        //        _rightIndex = finger;
-        //    }
-        //}
+        if (isRightHand) {
+            Transform _indexParent = _rightHand;
+            foreach (Transform finger in _indexParent) {
+                Debug.Log(finger.name);
+                if (finger.name.Contains("index")) {
+                    _rightIndex = finger;
+                }
+            }
+        }
     }
 
     void Update() {
@@ -117,7 +120,7 @@ public class hand : MonoBehaviour {
             if (OVRInput.GetDown(OVRInput.Button.Two) && _isEditting) {
                 //TODO: fly to orbit
                 planet_behavior pb = _editTrf.GetComponent<planet_behavior>();
-                Trailmanager.instance.send_to_trail(pb);
+                Trailmanager.instance.send_to_trail(pb,this);
                 _isEditting = false;
                 _editTrf = null;
             }

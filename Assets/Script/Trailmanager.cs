@@ -35,21 +35,21 @@ public class Trailmanager : MonoBehaviour {
 
     #region test functions
     void test_generate() {
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            GameObject new_planet = Instantiate(GameObject.Find("Earth"));
+        //if (Input.GetKeyDown(KeyCode.P))
+        //{
+        //    GameObject new_planet = Instantiate(GameObject.Find("Earth"));
 
-            //If I failed to sent it onto trail,destroy myself
-            if (!send_to_trail(new_planet.GetComponent<planet_behavior>()))
-                Destroy(new_planet);
-        }
+        //    //If I failed to sent it onto trail,destroy myself
+        //    if (!send_to_trail(new_planet.GetComponent<planet_behavior>()))
+        //        Destroy(new_planet);
+        //}
     }
 
     #endregion
 
 
     //init planet acoording to parameters of _pt
-    public bool send_to_trail(planet_behavior _pb)
+    public bool send_to_trail(planet_behavior _pb,hand this_hand)
     {
         GameObject _pt = search_blank();
         if (_pt == null)
@@ -58,6 +58,7 @@ public class Trailmanager : MonoBehaviour {
         if (_pt == null)
         {
             Destroy(_pb.gameObject);
+            this_hand.GetOutOfList(_pb.gameObject.transform);
             return false;
         }
 

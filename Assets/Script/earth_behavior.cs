@@ -33,9 +33,10 @@ public class earth_behavior : planet_behavior {
                 transform.GetChild(3).Rotate(self_spin_spd * Vector3.up);
                 update_UI();
                 scale_me();
+                transform.position += 0.02f*(Vector3.one * 0.5f - transform.position);
                 if (Input.GetKeyDown(KeyCode.N))
                 {
-                    Trailmanager.instance.send_to_trail(this);
+                    //Trailmanager.instance.send_to_trail(this);
                 }
                 return;
             case planet_type.real_planet:

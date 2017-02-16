@@ -78,6 +78,7 @@ public class planet_behavior : MonoBehaviour {
         }
         else if (my_type == planet_type.real_planet)
         {
+            mul_vector = 0.0f;
             return transform;
         }
         //if it is manipulating, becomes in_hand
@@ -101,7 +102,7 @@ public class planet_behavior : MonoBehaviour {
                     {
                         my_type = planet_type.manipulating;
                         //func/coroutine? fly_to(target point)
-                        transform.position = 0.5f*Vector3.one;
+                        //transform.position = 0.5f*Vector3.one;
                         Debug.Log("Goes to manipulate.");
                         return transform;
                     }
@@ -117,8 +118,10 @@ public class planet_behavior : MonoBehaviour {
                 hand_to_call.GetOutOfList(gameObject.transform);
                 Debug.Log("Goes back to inventory.");
                 return edit_trf;
-        
 
+            case planet_type.real_planet:
+                mul_vector = 0.02f;
+                return edit_trf;
             // if I grab planet from orbit, do nothing to the flag.
             //switch in case protection needed 
             default:
