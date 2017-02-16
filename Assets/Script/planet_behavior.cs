@@ -5,11 +5,11 @@ public class planet_behavior : MonoBehaviour {
     public GameObject target_trail;
     [Range(0.5f, 1.5f)]
     public float my_scale;
-    [Range(0f,10f)]
+    [Range(-5f,5f)]
     public float self_spin_spd;
     [Range(0.2f, 1f)]
     public float public_spin_spd;
-    public enum planet_type {class_model, real_planet};
+    public enum planet_type {class_model,in_hand,manipulating, real_planet};
     public planet_type my_type;
     public bool highlighted;
 
@@ -23,7 +23,8 @@ public class planet_behavior : MonoBehaviour {
     protected Quaternion _trail_rotation;
     protected float _start_time;
 
-    private int _rotator=0;
+    private float inve_scale=0.2f;
+
 
     #region public methods
     public bool self_init(GameObject target) {
@@ -52,6 +53,76 @@ public class planet_behavior : MonoBehaviour {
         }
         Destroy(gameObject);
     }
+
+    /// <summary>
+    /// When grab, call this. 
+    /// </summary>
+    /// <returns>a copy if it is a model, other itself</returns>
+    public Transform OnGrab() {
+        if (my_type == planet_type.class_model)
+        {
+            Transform me_clone = Instantiate(gameObject).transform;
+            me_clone.parent = null;
+            me_clone.position = transform.position;
+            me_clone.rotation = transform.rotation;
+            Transform _parent = transform;
+            //multiply parents' scale
+            while (_parent.parent != null)
+            {
+                me_clone.localScale *= _parent.parent.localScale.x;
+                _parent = _parent.parent;
+            }
+            me_clone.GetComponent<planet_behavior>().my_type = planet_type.in_hand;
+            me_clone.GetComponent<planet_behavior>().target_trail = null;
+            return me_clone;
+        }
+        else if (my_type == planet_type.real_planet)
+        {
+            return transform;
+        }
+        //if it is manipulating, becomes in_hand
+        my_type = planet_type.in_hand;
+        return transform;  
+    }
+    /// <summary>
+    /// thing in hand responds to when release the trigger
+    /// </summary>
+    /// <param name="is_editing"></param>
+    /// <returns></returns>
+    public Transform OnRelease(Transform edit_trf) {
+        switch (my_type) {
+            case planet_type.in_hand:
+                //judge where to go according to is_editing,
+                //and distance ( we could check the calculated sale instead)
+                if (Mathf.Abs(transform.localScale.x - my_scale) < 1e-7)
+                {
+                    //should go to manipulate spot
+                    if (edit_trf==null)
+                    {
+                        my_type = planet_type.manipulating;
+                        //func/coroutine? fly_to(target point)
+                        transform.position = Vector3.zero;
+                        Debug.Log("Goes to manipulate.");
+                        return transform;
+                    }
+                    else
+                    {
+                        Destroy(gameObject);
+                        return edit_trf;
+                    }
+                }
+                else
+                    //func fly_to(target_point)
+                    Debug.Log("Goes back to inventory.");
+                return edit_trf;
+        
+
+            // if I grab planet from orbit, do nothing to the flag.
+            //switch in case protection needed 
+            default:
+                return edit_trf;
+        }
+    } 
 
     #endregion
 
@@ -87,6 +158,16 @@ public class planet_behavior : MonoBehaviour {
         mat.shader = highlighted?Shader.Find("Custom/RimSelection") : Shader.Find("Standard");
     }
 
+    protected float interpolation(float max_distance, GameObject inventory) {
+        //get linear interpolation between current scale and final scale
+
+        float c_scale =inve_scale * my_scale;
+        float _slope = (my_scale - c_scale) / max_distance;
+        if (inventory.activeInHierarchy == false)
+            return my_scale;
+        float _dis = Vector3.Distance(inventory.transform.position, transform.position);
+        return _dis >= max_distance ? my_scale: (c_scale+_slope * _dis);
+    }
     #endregion
 }
 

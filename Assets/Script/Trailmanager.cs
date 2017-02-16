@@ -3,7 +3,9 @@ using System.Collections;
 
 public class Trailmanager : MonoBehaviour {
     const int MAXIMUM_COUNT=6;
+    public float detection_dist;
     public int trail_count;
+    public GameObject inventory;
 
     //================singleton================
     public static Trailmanager instance = null;
@@ -20,6 +22,9 @@ public class Trailmanager : MonoBehaviour {
 	
 	void Start () {
         trail_count = 1;
+        detection_dist = 2f;
+        if (!inventory)
+            inventory = GameObject.Find("Small_version");
 	}
 
     //======================test use===============================
@@ -49,11 +54,15 @@ public class Trailmanager : MonoBehaviour {
         GameObject _pt = search_blank();
         if (_pt == null)
             _pt = create_new_trail();
-        
+
         if (_pt == null)
+        {
+            Destroy(_pb.gameObject);
             return false;
+        }
 
         _pb.self_init(_pt);
+        _pb.my_type = planet_behavior.planet_type.real_planet;
         return true;
 
     }
