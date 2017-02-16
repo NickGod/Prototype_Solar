@@ -40,12 +40,12 @@ public class hand : MonoBehaviour {
     Transform movingTar = null;
 
     void Start() {
-        Transform _indexParent = _rightHand.GetChild(0).GetChild(0).GetChild(0);
-        foreach(Transform finger in _indexParent) {
-            if (finger.name.Contains("index")) {
-                _rightIndex = finger;
-            }
-        }
+        //Transform _indexParent = _rightHand.GetChild(0).GetChild(0).GetChild(0);
+        //foreach(Transform finger in _indexParent) {
+        //    if (finger.name.Contains("index")) {
+        //        _rightIndex = finger;
+        //    }
+        //}
     }
 
     void Update() {

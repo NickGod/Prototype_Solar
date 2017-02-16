@@ -89,7 +89,7 @@ public class planet_behavior : MonoBehaviour {
     /// </summary>
     /// <param name="is_editing"></param>
     /// <returns></returns>
-    public Transform OnRelease(Transform edit_trf) {
+    public Transform OnRelease(Transform edit_trf, hand hand_to_call) {
         switch (my_type) {
             case planet_type.in_hand:
                 //judge where to go according to is_editing,
@@ -111,10 +111,9 @@ public class planet_behavior : MonoBehaviour {
                         return edit_trf;
                     }
                 }
-                else
-                    //func fly_to(target_point)
-                    Destroy(gameObject);
-                    Debug.Log("Goes back to inventory.");
+                //func fly_to(target_point)
+                Destroy(gameObject);
+                Debug.Log("Goes back to inventory.");
                 return edit_trf;
         
 
