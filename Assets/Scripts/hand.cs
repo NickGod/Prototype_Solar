@@ -128,11 +128,21 @@ public class hand : MonoBehaviour {
 
             //TODO: shooting
             if (IsShooting()) {
-                
-            }
- 
+                RaycastHit hit;
+                Ray shootingRay = new Ray(_rightIndex.position, _rightIndex.right);
+                Vector3[] positions = new Vector3[2] { _rightIndex.position, _rightIndex.right * 1000f + _rightIndex.position };
+                GetComponent<LineRenderer>().SetPositions(positions);
 
-            
+                if (Physics.Raycast(shootingRay, out hit)) {
+                    planet_behavior pb = hit.collider.gameObject.GetComponent<planet_behavior>();
+                    if (pb && pb.my_type == planet_behavior.planet_type.real_planet) {
+                        pb.delete_me();
+                    }
+                }
+            }
+
+
+
             ////test
             //if (IsAxis2Touched()) {
             //    SetSpinSpeed();
