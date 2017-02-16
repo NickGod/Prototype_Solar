@@ -17,7 +17,7 @@ public class hand : MonoBehaviour {
     float _inventoryTime = 0.2f;
     static bool _isInventory = false;
 
-    List<Transform> trfList = new List<Transform>();
+    public List<Transform> trfList = new List<Transform>();
     Transform _grabbedParent;
     Transform _grabbed;
 
@@ -87,9 +87,9 @@ public class hand : MonoBehaviour {
             }
             
             //Axis rotation
-            if (_isEditting) {
-                _editTrf.localRotation = SetAxis();
-            }
+            //if (_isEditting) {
+            //    _editTrf.localRotation = SetAxis();
+            //}
             
             //Rotating speed
             if (IsAxis2Touched() && _isEditting) {
@@ -131,20 +131,25 @@ public class hand : MonoBehaviour {
             _isGrabbing = true;
         }
         if (_isGrabbing) {
-            _isEditting = false;
             if (_grabbed == null) {
                 Transform target = GetClosest();
                 //test luna merge
-                _grabbed = target.GetComponent<planet_behavior>().OnGrab();
-                if (_grabbed) {
-                    if (_grabbed == _editTrf) {
-                        _editTrf = null;
+                if (target) {
+                    _isEditting = false;
+                    _grabbed = target.GetComponent<planet_behavior>().OnGrab();
+                    if (_grabbed)
+                    {
+                        if (_grabbed == _editTrf)
+                        {
+                            _editTrf = null;
+                        }
+                        if (_grabbed.parent == _otherHand)
+                        {
+                            _otherHand.GetComponent<hand>().LoseControl();
+                        }
+                        _grabbedParent = null;
+                        _grabbed.parent = transform;
                     }
-                    if (_grabbed.parent == _otherHand) {
-                        _otherHand.GetComponent<hand>().LoseControl();
-                    }
-                    _grabbedParent = null;
-                    _grabbed.parent = transform;
                 }
             }
         } 

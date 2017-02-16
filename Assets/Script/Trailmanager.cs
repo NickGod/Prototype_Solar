@@ -22,7 +22,7 @@ public class Trailmanager : MonoBehaviour {
 	
 	void Start () {
         trail_count = 1;
-        detection_dist = 2f;
+        detection_dist = 0.8f;
         if (!inventory)
             inventory = GameObject.Find("Small_version");
 	}

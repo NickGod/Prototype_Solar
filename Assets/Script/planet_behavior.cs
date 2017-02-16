@@ -94,14 +94,14 @@ public class planet_behavior : MonoBehaviour {
             case planet_type.in_hand:
                 //judge where to go according to is_editing,
                 //and distance ( we could check the calculated sale instead)
-                if (Mathf.Abs(transform.localScale.x - my_scale) < 1e-7)
+                if (edit_trf == null)
                 {
                     //should go to manipulate spot
-                    if (edit_trf==null)
+                    if (Mathf.Abs(transform.localScale.x - my_scale) < 1e-7)
                     {
                         my_type = planet_type.manipulating;
                         //func/coroutine? fly_to(target point)
-                        transform.position = Vector3.zero;
+                        transform.position = Vector3.one;
                         Debug.Log("Goes to manipulate.");
                         return transform;
                     }
@@ -113,6 +113,7 @@ public class planet_behavior : MonoBehaviour {
                 }
                 else
                     //func fly_to(target_point)
+                    Destroy(gameObject);
                     Debug.Log("Goes back to inventory.");
                 return edit_trf;
         
