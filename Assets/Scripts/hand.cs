@@ -40,17 +40,13 @@ public class hand : MonoBehaviour {
     bool isMoving = false;
     Transform movingTar = null;
 
-    //void Start() {
-    //    if (isRightHand) {
-    //        Transform _indexParent = _rightHand;
-    //        foreach (Transform finger in _indexParent) {
-    //            Debug.Log(finger.name);
-    //            if (finger.name.Contains("index")) {
-    //                _rightIndex = finger;
-    //            }
-    //        }
-    //    }
-    //}
+    //right index finger
+    bool isIndexFound = false;
+    LineRenderer lineRender;
+
+    void Start() {
+        lineRender = GetComponent<LineRenderer>();
+    }
 
     void Update() {
         if (!isRightHand) {
@@ -84,6 +80,19 @@ public class hand : MonoBehaviour {
             //transform.localPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
             //transform.localRotation = OVRInput.GetLocalControllerRotation(OVRInput.Controller.RTouch);
 
+            if (!isIndexFound) {
+                try {
+                    Transform _indexParent = _rightHand.GetChild(0).GetChild(0).GetChild(0);
+                    foreach (Transform finger in _indexParent) {
+                        if (finger.name.Contains("index")) {
+                            _rightIndex = finger;
+                            isIndexFound = true;
+                        }
+                    }
+                } catch (UnityException) {
+                    ;
+                }
+            }
 
             //resizing
             if (IsBothFist() && _isEditting && !_onResizing) {
@@ -127,20 +136,28 @@ public class hand : MonoBehaviour {
             }
 
             //TODO: shooting
-            if (IsShooting()) {
-                RaycastHit hit;
-                Ray shootingRay = new Ray(_rightIndex.position, _rightIndex.right);
+            if (IsAiming() && isIndexFound) {
+                //TODO: check this, this is a new change after Mim's test
+                //TODO: change the size of planet after you release it, when you hold it, it doesn't change the size
+                lineRender.enabled = true;
                 Vector3[] positions = new Vector3[2] { _rightIndex.position, _rightIndex.right * 1000f + _rightIndex.position };
-                GetComponent<LineRenderer>().SetPositions(positions);
+                lineRender.SetPositions(positions);
 
-                if (Physics.Raycast(shootingRay, out hit)) {
-                    planet_behavior pb = hit.collider.gameObject.GetComponent<planet_behavior>();
-                    if (pb && pb.my_type == planet_behavior.planet_type.real_planet) {
-                        pb.delete_me();
+
+                if (IsShooting()) {
+                    RaycastHit hit;
+                    Ray shootingRay = new Ray(_rightIndex.position, _rightIndex.right);
+
+                    if (Physics.Raycast(shootingRay, out hit)) {
+                        planet_behavior pb = hit.collider.gameObject.GetComponent<planet_behavior>();
+                        if (pb && pb.my_type == planet_behavior.planet_type.real_planet) {
+                            pb.delete_me();
+                        }
                     }
                 }
+            } else {
+                lineRender.enabled = false;
             }
-
 
 
             ////test
@@ -243,18 +260,17 @@ public class hand : MonoBehaviour {
         return Vector3.up;
     }
 
+    bool IsAiming() {
+        return !(OVRInput.Get(OVRInput.Touch.SecondaryIndexTrigger) || OVRInput.Get(OVRInput.NearTouch.SecondaryIndexTrigger));
+    }
+
     bool IsShooting() {
         if (isRightHand) {
-            bool thumbRelease = !(OVRInput.Get(OVRInput.Touch.SecondaryThumbRest) || OVRInput.Get(OVRInput.NearTouch.SecondaryThumbButtons));
-            bool indexRelease = !(OVRInput.Get(OVRInput.Touch.SecondaryIndexTrigger) || OVRInput.Get(OVRInput.NearTouch.SecondaryIndexTrigger));
-
-            if (thumbRelease && indexRelease) {
-                return OVRInput.GetDown(OVRInput.Button.SecondaryHandTrigger);
+            if (IsAiming()) {
+                return OVRInput.Get(OVRInput.Button.SecondaryHandTrigger);
             }
-            return false;
-        } else {
-            return false;
         }
+        return false;
     }
 
     bool IsAxis2Touched() {
