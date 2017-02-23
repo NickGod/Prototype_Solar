@@ -199,6 +199,7 @@ public class hand : MonoBehaviour {
                                 && underCtrObj.GetComponent<planet_behavior>().my_type == planet_behavior.planet_type.real_planet) {
                                 _pointingTrf = underCtrObj.transform;
                                 _pointingTrf = _pointingTrf.GetComponent<planet_behavior>().OnGrab();
+                                Debug.Log("pointint and dragging");
                             }
                             
                         } else if (_myState == State.OnClass) {
@@ -232,29 +233,31 @@ public class hand : MonoBehaviour {
             }
         }
         if (_myState == State.Idle) {
-            if (_pointingTrf) {
-                RaycastHit hit;
-                Ray draggingRay = new Ray(_rightIndex.position, _rightIndex.right);
+            if (isRightHand) {
+                if (_pointingTrf) {
+                    RaycastHit hit;
+                    Ray draggingRay = new Ray(_rightIndex.position, _rightIndex.right);
 
-                Vector3 _target;
-                if (Physics.Raycast(draggingRay, out hit)) {
-                    GameObject _hitObj = hit.collider.gameObject;
-                    if (_hitObj.tag == Tags.Reachable) {
-                        _target = _hitObj.transform.position;
+                    Vector3 _target;
+                    if (Physics.Raycast(draggingRay, out hit)) {
+                        GameObject _hitObj = hit.collider.gameObject;
+                        if (_hitObj.tag == Tags.Reachable) {
+                            _target = _hitObj.transform.position;
+                        } else {
+                            _target = _rightIndex.position + _rightIndex.right * distance;
+                        }
                     } else {
                         _target = _rightIndex.position + _rightIndex.right * distance;
                     }
-                } else {
-                    _target = _rightIndex.position + _rightIndex.right * distance;
+                    //INDO: update pointTrf position and check if it should be deleted
+                    _pointingTrf.GetComponent<planet_behavior>().move_towards(_target);
                 }
-                //INDO: update pointTrf position and check if it should be deleted
-                _pointingTrf.GetComponent<planet_behavior>().move_towards(_target);
-            }
 
-            //pointing and dragging release
-            if (!IsInShootingGesture() && _pointingTrf) {
-                _pointingTrf.GetComponent<planet_behavior>().OnRelease(this);
-                _pointingTrf = null;
+                //pointing and dragging release
+                if (!IsInShootingGesture() && _pointingTrf) {
+                    _pointingTrf.GetComponent<planet_behavior>().OnRelease(this);
+                    _pointingTrf = null;
+                }
             }
 
             //grabbing
@@ -352,20 +355,14 @@ public class hand : MonoBehaviour {
         }
         return false;
     }
-
+    bool test = false;
+    int count = 0;
     bool IsInShootingGesture() {
         if (isRightHand) {
             if (IsAiming()) {
                 if (OVRInput.Get(OVRInput.Button.SecondaryHandTrigger)) {
-                    Debug.Log("in hand trigger");
                     return true;
-                } else {
-                    Debug.Log("not in hand triger");
-                    return false;
                 }
-            } else {
-                Debug.Log("Not in aiming");
-                return false;
             }
         }
         return false;
