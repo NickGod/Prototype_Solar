@@ -31,7 +31,7 @@ public class hand : MonoBehaviour {
         OnClass,
         OnObject
     }
-    static State _myState = State.Prepare;
+    static State _myState = State.Idle;//TODO: change back to Prepare after testing
 
     //aiming and grabbing/pointing
     bool _isFist = false;
@@ -41,7 +41,7 @@ public class hand : MonoBehaviour {
     //joystick
     float _joyStick1DVal = 0.0f;
     float _joyStick1DValMax = 1.0f;
-    static planet_behavior.planet_type _selection;
+    static string _selection;
     static bool _isSelected = false; //for activate joystick only once every move
     static bool _confirmed = false;
 
@@ -143,13 +143,13 @@ public class hand : MonoBehaviour {
                         if (val > 0.5f) {
                             _isSelected = true;
                             val = 1;
-                            //TODO:
-                            //_selection = luna_function();
+                            _selection = _editTrf.GetComponent<planet_behavior>().current_attribute((int)val);
+                            //INDO
                         } else if (val < -0.5f) {
                             _isSelected = true;
                             val = -1;
-                            //TODO:
-                            //_selection = luna_function();
+                            _selection = _editTrf.GetComponent<planet_behavior>().current_attribute((int)val);
+                            //INDO
                         }
                     }
                     if (val <= 0.2f && val >= -0.2f) {
@@ -158,27 +158,18 @@ public class hand : MonoBehaviour {
                 } else {
                     //on changing value of the attribute
                     SetJoyStick1DVal();
-                    //TODO: call luna function with parameter _selection and value
+                    _editTrf.GetComponent<planet_behavior>().change_attribute(_selection, _joyStick1DVal);
+                    //INDO: call luna function with parameter _selection and value
                 }
                 if (IsConfirmed()) {
                     _confirmed = !_confirmed;
                 }
                 
             }
+            
 
-            //TODO: keep mechanism but call when it hits the black hole
-            //if (OVRInput.GetDown(OVRInput.Button.Two) && _isEditting) {
-            //    //TODO: fly to orbit
-            //    planet_behavior pb = _editTrf.GetComponent<planet_behavior>();
-            //    Trailmanager.instance.send_to_trail(pb,this);
-            //    _isEditting = false;
-            //    _editTrf = null;
-            //}
-
-            //TODO: shooting
+            //INDO: shooting
             if (IsAiming() && isIndexFound) {
-                //TODO: check this, this is a new change after Mim's test
-                //TODO: change the size of planet after you release it, when you hold it, it doesn't change the size
                 lineRender.enabled = true;
                 Vector3[] positions = new Vector3[2] { _rightIndex.position, _rightIndex.right * 1000f + _rightIndex.position };
                 lineRender.SetPositions(positions);
@@ -202,46 +193,44 @@ public class hand : MonoBehaviour {
                                 _myState = State.OnObject;
                             }
                         } else if (_myState == State.Idle) {
-                            //TODO: point planet from orbit 
+                            //INDO: point planet from orbit 
                             GameObject underCtrObj = hit.collider.gameObject;
-                            //TODO: check the type of planet and enable control only when
+                            //INDO: check the type of planet and enable control only when
                             // it is a real planet object
-                            if (underCtrObj.tag == Tags.Grabbable && realplanet && !_grabbed) {
+                            if (underCtrObj.tag == Tags.Grabbable && !_grabbed
+                                && underCtrObj.GetComponent<planet_behavior>().my_type == planet_behavior.planet_type.real_planet) {
                                 _pointingTrf = underCtrObj.transform;
                                 _pointingTrf = _pointingTrf.GetComponent<planet_behavior>().OnGrab();
                             }
                             
                         } else if (_myState == State.OnClass) {
-                            //TODO: 1. selecting attribute to the current editing class
+                            //INDO: 1. selecting attribute to the current editing class
+                            Transform _hittedStuff = hit.collider.transform;
+                            if (_hittedStuff.tag == Tags.ClassUI) {
+                                _hittedStuff.GetComponent<ClassUI>().set_active(_editTrf);
+                            }
                             //2. choosing button to either creating a new class or modifying current class
-                            //if (clicking button) {
-                            //    _myState = State.Idle;
-                            //}
+                            if (_hittedStuff.tag == Tags.Button) {
+                                //if (buttonname == "save") {
+                                    _editTrf.GetComponent<planet_behavior>().save_class();
+                                //} else if (buttonname == "create") {
+                                //    //TODO: create a new class
+                                //}
+                                _editTrf = null;
+                            }
                         } else if (_myState == State.OnObject) {
-                            //TODO: clicking button of "instantiate"
+                            //INDO: clicking button of "instantiate"
                             //if (clicking button) {
+                                Trailmanager.instance.send_to_trail(_editTrf.GetComponent<planet_behavior>(), this);
                             //    _myState = State.Idle;
+                                _editTrf = null;
                             //}
                         }
                     }
                 }
-                //TODO: if release middle finger call release
             } else {
                 lineRender.enabled = false;
-                _pointingTrf = null;
-                //TODO: if press index trigger also call release
             }
-            ////test
-            //if (IsAxis2Touched()) {
-            //    SetSpinSpeed();
-            //    Debug.Log("Spin: " + _spinSpeed);
-            //}
-            //if (IsShooting()) {
-            //    Debug.Log("Shooting");
-            //}
-            //if (IsFist()) {
-            //    Debug.Log("Fist");
-            //}
         }
         if (_myState == State.Idle) {
             if (_pointingTrf) {
@@ -253,17 +242,14 @@ public class hand : MonoBehaviour {
                     GameObject _hitObj = hit.collider.gameObject;
                     if (_hitObj.tag == Tags.Reachable) {
                         _target = _hitObj.transform.position;
+                    } else {
+                        _target = _rightIndex.position + _rightIndex.right * distance;
                     }
                 } else {
                     _target = _rightIndex.position + _rightIndex.right * distance;
                 }
-                //TODO: update pointTrf position and check if it should be deleted
-
-
-                //planet_behavior pb = hit.collider.gameobject.getcomponent<planet_behavior>();
-                //if (pb && pb.my_type == planet_behavior.planet_type.real_planet) {
-                //    pb.delete_me();
-                //}
+                //INDO: update pointTrf position and check if it should be deleted
+                _pointingTrf.GetComponent<planet_behavior>().move_towards(_target);
             }
 
             //pointing and dragging release
@@ -397,8 +383,8 @@ public class hand : MonoBehaviour {
             _joyStick1DVal += OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x * Time.deltaTime;
             if (_joyStick1DVal > _joyStick1DValMax) {
                 _joyStick1DVal = _joyStick1DValMax;
-            } else if (_joyStick1DVal < 0) {
-                _joyStick1DVal = 0;
+            } else if (_joyStick1DVal < -_joyStick1DValMax) {
+                _joyStick1DVal = -_joyStick1DValMax;
             }
         }
     }
@@ -454,22 +440,16 @@ public class hand : MonoBehaviour {
     public void LoseControl() {
         if (_grabbed) {
             if (_grabbed.parent != transform && _grabbed.parent != _otherHand) {
-                //TODO: check the current parent, if it is not hand, then the object will fly
-                //to specific spot(either editting spot or inventory or orbit trail), then update onEditting info
-                //if fly to editting spot, _editTrf should be set as the grabbed obj
-                //Question? should we change the isEditting to true after the planet is exactly in the place
                 _editTrf = _grabbed.GetComponent<planet_behavior>().OnRelease(this);
-
-                //TODO: update state from _editTrf
-                if (_editTrf.State == LunaState.OnClass) {
+                
+                if (_editTrf.GetComponent<planet_behavior>().my_type == planet_behavior.planet_type.class_change) {
                     _myState = State.OnClass;
-                } else if (_editTrf.State == LunaState.OnObject) {
-                    //TODO:
-                    //_selection = lunaFunction.getselection(0)
+                } else if (_editTrf.GetComponent<planet_behavior>().my_type == planet_behavior.planet_type.manipulating) {
+                    //INDO:
+                    _selection = _editTrf.GetComponent<planet_behavior>().current_attribute(0);
                     _isSelected = false;
                     _confirmed = false;
                     _myState = State.OnObject;
-
                 }
             }
             _grabbed = null;
