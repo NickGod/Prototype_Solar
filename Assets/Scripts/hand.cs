@@ -135,24 +135,22 @@ public class hand : MonoBehaviour {
             //}
 
             //changing parameter by moving joysticks
-            if (IsAxis2Touched() && _myState == State.OnObject) {
+            if (_myState == State.OnObject) {
                 if (!_confirmed) {
                     //on selecting which attribute to change
                     float val = OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x * Time.deltaTime;
                     if (!_isSelected) {
-                        if (val > 0.5f) {
+                        if (val > 0.0f) {
                             _isSelected = true;
-                            val = 1;
-                            _selection = _editTrf.GetComponent<planet_behavior>().current_attribute((int)val);
+                            _selection = _editTrf.GetComponent<planet_behavior>().current_attribute(1);
                             //INDO
-                        } else if (val < -0.5f) {
+                        } else if (val < 0.0f) {
                             _isSelected = true;
-                            val = -1;
-                            _selection = _editTrf.GetComponent<planet_behavior>().current_attribute((int)val);
+                            _selection = _editTrf.GetComponent<planet_behavior>().current_attribute(-1);
                             //INDO
                         }
                     }
-                    if (val <= 0.2f && val >= -0.2f) {
+                    if (val == 0.0f) {
                         _isSelected = false;
                     }
                 } else {
@@ -217,12 +215,13 @@ public class hand : MonoBehaviour {
                                 //    //TODO: create a new class
                                 //}
                                 _editTrf = null;
+                                _myState = State.Idle;
                             }
                         } else if (_myState == State.OnObject) {
                             //INDO: clicking button of "instantiate"
                             //if (clicking button) {
                                 Trailmanager.instance.send_to_trail(_editTrf.GetComponent<planet_behavior>(), this);
-                            //    _myState = State.Idle;
+                                _myState = State.Idle;
                                 _editTrf = null;
                             //}
                         }
@@ -357,7 +356,16 @@ public class hand : MonoBehaviour {
     bool IsInShootingGesture() {
         if (isRightHand) {
             if (IsAiming()) {
-                return OVRInput.Get(OVRInput.Button.SecondaryHandTrigger);
+                if (OVRInput.Get(OVRInput.Button.SecondaryHandTrigger)) {
+                    Debug.Log("in hand trigger");
+                    return true;
+                } else {
+                    Debug.Log("not in hand triger");
+                    return false;
+                }
+            } else {
+                Debug.Log("Not in aiming");
+                return false;
             }
         }
         return false;
@@ -380,12 +388,7 @@ public class hand : MonoBehaviour {
 
     void SetJoyStick1DVal() {
         if (isRightHand) {
-            _joyStick1DVal += OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x * Time.deltaTime;
-            if (_joyStick1DVal > _joyStick1DValMax) {
-                _joyStick1DVal = _joyStick1DValMax;
-            } else if (_joyStick1DVal < -_joyStick1DValMax) {
-                _joyStick1DVal = -_joyStick1DValMax;
-            }
+            _joyStick1DVal = OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x * Time.deltaTime;
         }
     }
 
@@ -444,12 +447,18 @@ public class hand : MonoBehaviour {
                 
                 if (_editTrf.GetComponent<planet_behavior>().my_type == planet_behavior.planet_type.class_change) {
                     _myState = State.OnClass;
+                    if (isRightHand) {
+                        _otherHand.GetChild(0).gameObject.SetActive(false);
+                    }
                 } else if (_editTrf.GetComponent<planet_behavior>().my_type == planet_behavior.planet_type.manipulating) {
                     //INDO:
                     _selection = _editTrf.GetComponent<planet_behavior>().current_attribute(0);
                     _isSelected = false;
                     _confirmed = false;
                     _myState = State.OnObject;
+                    if (isRightHand) {
+                        _otherHand.GetChild(0).gameObject.SetActive(false);
+                    }
                 }
             }
             _grabbed = null;

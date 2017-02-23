@@ -79,7 +79,7 @@ public class earth_behavior : planet_behavior {
             foreach (string str in attrList)
             {
                 buffer += str;
-                buffer += ":" + attribute_value[str].ToString()+" ";
+                buffer += ":" + attribute_value[str].ToString("F4")+" ";
             }
             earth_specs.text = buffer;
         }
@@ -114,6 +114,10 @@ public class earth_behavior : planet_behavior {
         int i = Mathf.FloorToInt(attribute_value["color"] / 0.2f) % 4;
         Material mat = transform.GetChild(3).GetComponent<MeshRenderer>().material;
         mat.SetColor("_Color",mycolors[i]);
+    }
+
+    protected override void update_my_size() {
+        transform.localScale= (1f + 0.5f * +attribute_value["size"]) * Vector3.one;
     }
 
 }

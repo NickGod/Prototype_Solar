@@ -43,7 +43,7 @@ public class planet_behavior : MonoBehaviour {
         attribute_value["ring"] = 0f;
         attribute_value["moon"] = 0f;
         attribute_value["color"] = 0f;
-        attribute_value["size"] = 1f;
+        attribute_value["size"] = 0f;
         update_attrList();
         return true;
     }
@@ -147,12 +147,16 @@ public class planet_behavior : MonoBehaviour {
             case planet_type.in_hand:
                 //judge where to go according to is_editing,
                 //and distance ( we could check the calculated sale instead)
-                    //should go to manipulate spot
+                //should go to manipulate spot
+                transform.parent = null;
+                transform.localScale = Vector3.one;
                 if (transform.position.x<-0.2f)
                 {
                     my_type = planet_type.class_change;
                     hand_to_call.GetOutOfList(gameObject.transform);
                     Debug.Log("Goes to class change.");
+                    transform.position = GameObject.Find("edit_spot_class").transform.position + 0.3f*Vector3.up;
+                    transform.localScale = 0.3f*Vector3.one;
                     return transform;
                 }
                 else
@@ -160,6 +164,7 @@ public class planet_behavior : MonoBehaviour {
                     my_type = planet_type.manipulating;
                     hand_to_call.GetOutOfList(gameObject.transform);
                     Debug.Log("Goes to manipulate.");
+                    transform.position = GameObject.Find("edit_spot_changing").transform.position + Vector3.up;
                     return transform;
                 }      
 
@@ -190,11 +195,12 @@ public class planet_behavior : MonoBehaviour {
     }
 
     public string current_attribute(int val) {
-        
+
         if (attrList.Count == 0)
             return null;
         else
-            return attrList[(roulette + val) % attrList.Count];        
+            roulette += val;
+            return attrList[roulette % attrList.Count];        
     }
 
     public void save_class() {
