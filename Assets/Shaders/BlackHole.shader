@@ -1,4 +1,4 @@
-﻿Shader "Custom/RimSelection" {
+﻿Shader "Custom/BlackHole" {
 	Properties {
 		_MainTex ("Albedo (RGB)", 2D) = "white" {}
 		_RimPower("Rim Power", Range(0.5,8.0)) = 3.5
@@ -9,7 +9,7 @@
 			LOD 200
 
 			CGPROGRAM
-			#pragma surface surf Lambert
+			#pragma surface surf Lambert alpha
 
 		// Use shader model 3.0 target, to get nicer looking lighting
 		#pragma target 3.0
@@ -25,6 +25,7 @@
 
 		void surf (Input IN, inout SurfaceOutput o) {
 			o.Albedo = tex2D(_MainTex, IN.uv_MainTex).rgb;
+			o.Alpha = 0.5;
 			half rim = 1.0 - saturate(dot(normalize(IN.viewDir), o.Normal));
 			o.Emission = _RimColor.rgb * pow(rim, _RimPower);
 		}

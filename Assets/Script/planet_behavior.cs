@@ -3,18 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class planet_behavior : MonoBehaviour {
-    public GameObject target_trail;
-    public float tester;
+   
     static readonly string[] usable_attributes = { "ring", "moon", "color", "size" };
-    //-----------------------------obsolete----------------------
-    [Range(-5f,5f)]
-    public float self_spin_spd;
-    [Range(0.2f, 1f)]
-    public float public_spin_spd;
-    //-----------------------------obsolete----------------------
+
+    public GameObject target_trail;
     public enum planet_type {class_model,in_hand,class_change,manipulating,real_planet};
     public planet_type my_type;
     public bool highlighted;
+
+    protected const float self_spin_spd = 0.965f;
+    protected const float public_spin_spd = 0.606f;
 
     // put myself on trail
     // moving on the trail
@@ -24,11 +22,12 @@ public class planet_behavior : MonoBehaviour {
     protected float _yradius;
     protected Vector3 _center;
     protected Quaternion _trail_rotation;
-    protected float _start_time;
-
+  
     //whether the attribute activated
     protected Dictionary<string, bool> activate_attribute= new Dictionary<string, bool>();
     protected Dictionary<string, float> attribute_value = new Dictionary<string, float>();
+    protected List<string> attrList;
+
     private float inve_scale=0.2f;
     private int roulette = 0;
 
@@ -45,6 +44,7 @@ public class planet_behavior : MonoBehaviour {
         attribute_value["moon"] = 0f;
         attribute_value["color"] = 0f;
         attribute_value["size"] = 1f;
+        update_attrList();
         return true;
     }
 
@@ -69,16 +69,17 @@ public class planet_behavior : MonoBehaviour {
         return true;
     }
 
-    public List<string> activated_attr() {
-        List<string> acts = new List<string>();
+    public List<string> update_attrList() {
+        if (attrList == null) attrList = new List<string>();
+        attrList.Clear();   
         for (int i = 0; i < usable_attributes.GetLength(0); i++)
         {
             string str = usable_attributes[i];
             if (activate_attribute[str] == true) {
-                acts.Add(str);
+                attrList.Add(str);
             }
         }
-        return acts;
+        return attrList;
     }
 
     public bool activate(string to_activate) {
@@ -86,6 +87,7 @@ public class planet_behavior : MonoBehaviour {
         if (activate_attribute.ContainsKey(to_activate))
         {
             activate_attribute[to_activate] = !activate_attribute[to_activate];
+            update_attrList();
             return true;
         }
         Debug.LogError("Should change key values correctly. Check UI names and planet initializations.");
@@ -121,7 +123,7 @@ public class planet_behavior : MonoBehaviour {
             }
             //initialize attribute value
             me_clone.GetComponent<planet_behavior>().attribute_init(activate_attribute);
-            //me_clone.GetComponent<planet_behavior>().my_type = planet_type.in_hand;
+            me_clone.GetComponent<planet_behavior>().my_type = planet_type.in_hand;
             me_clone.GetComponent<planet_behavior>().target_trail = null;
             return me_clone;
         }
@@ -180,16 +182,19 @@ public class planet_behavior : MonoBehaviour {
             Debug.LogWarning("Attribute is not added, check roulette.");
             return false;
         }
-        attribute_value[name] = val;
+        float temp = attribute_value[name];
+        temp += val;
+        attribute_value[name] =Mathf.Clamp (temp,0f,1f);
+        update_value(name);
         return true;
     }
 
     public string current_attribute(int val) {
-        List<string> act_attr = activated_attr();
-        if (act_attr.Count == 0)
+        
+        if (attrList.Count == 0)
             return null;
         else
-            return act_attr[(roulette + val) % act_attr.Count];        
+            return attrList[(roulette + val) % attrList.Count];        
     }
 
     public void save_class() {
@@ -233,41 +238,28 @@ public class planet_behavior : MonoBehaviour {
 
     }
 
-    protected void highlight(){
-        Material mat = GetComponent<MeshRenderer>().material; 
-        mat.shader = highlighted?Shader.Find("Custom/RimSelection") : Shader.Find("Standard");
-    }
-
-    protected void update_value() {
-        //mapping the values in to attribute
-            for (int i = 0; i < usable_attributes.GetLength(0); i++)
-            {
-                string str = usable_attributes[i];
-                if (activate_attribute[str] == true) {
-                    update_functions(str);
-                }
-            }
-        }
-
-    private void update_functions(string str)
+    private void update_value(string str)
     {
-        //mapping the values in to attribute
-        switch (str) {
-            case "moon":
-                Debug.Log("Adjusting moon.");
-                return;
-            case "ring":
-                Debug.Log("Adjusting moon.");
-                return;
-            case "color":
-                Debug.Log("Change color.");
-                return;
-            case "size":
-                Debug.Log("Change size.");
-                return;
-            default:
-                return;
-        }
+        if (activate_attribute[str] == true)
+          //mapping the values in to attribute
+            switch (str)
+            {
+                case "moon":
+                    update_my_moon();
+                    return;
+                case "ring":
+                    update_my_ring();
+                    return;
+                case "color":
+                    update_my_color();
+                    return;
+                case "size":
+                    update_my_size();
+                    return;
+                default:
+                    return;
+            }
+        
     }
 
     //} ============================================obsolete============================
@@ -281,6 +273,21 @@ public class planet_behavior : MonoBehaviour {
     //    float _dis = Vector3.Distance(inventory.transform.position, transform.position);
     //    return _dis >= max_distance ? my_scale: (c_scale+_slope * _dis);
     //} ============================================obsolete============================
+    #endregion
+
+
+    #region virtual methods
+    protected virtual void update_my_moon() { }
+
+    protected virtual void update_my_ring() { }
+
+    protected virtual void update_my_color() { }
+
+    protected virtual void update_my_size() { }
+
+    protected virtual void highlight(){ }
+
+
     #endregion
 
     /* private void OnDestroy()

@@ -38,14 +38,21 @@ public class earth_behavior : planet_behavior {
 
             case planet_type.manipulating:
                 transform.GetChild(3).Rotate(-self_spin_spd * Vector3.up);
-                update_UI(2);           
+                update_UI(2);
+                if (Input.GetKeyDown(KeyCode.A)) {
+                    change_attribute("moon", 0.2f);
+                }           
                 return;
 
             case planet_type.real_planet:
                 //** Add one condition on whether it is on hand
                 transform.GetChild(3).Rotate(-self_spin_spd * Vector3.up);
                 rotate_on_trail();
-                update_UI();
+                update_UI(2);
+                if (Vector3.Distance(Trailmanager.instance.blackhole.transform.position, transform.position) < 2f) {
+                    
+                    delete_me();        
+                }
                 return;
             default:
                 return;
@@ -60,7 +67,7 @@ public class earth_behavior : planet_behavior {
         if (specs == 1)
         {
             string buffer = "Activating:";
-            foreach (string str in activated_attr())
+            foreach (string str in attrList)
             {
                 buffer += str;
                 buffer += " ";
@@ -69,7 +76,7 @@ public class earth_behavior : planet_behavior {
         }
         else if (specs == 2) {
             string buffer = " ";
-            foreach (string str in activated_attr())
+            foreach (string str in attrList)
             {
                 buffer += str;
                 buffer += ":" + attribute_value[str].ToString()+" ";
@@ -83,4 +90,30 @@ public class earth_behavior : planet_behavior {
     void rotate_on_trail() {
         trail_rotate(_xradius, _yradius, public_spin_spd);
     }
+
+    protected override void highlight()
+    {
+        Material mat =transform.GetChild(3).GetComponent<MeshRenderer>().material;
+        mat.shader = highlighted ? Shader.Find("Custom/RimSelection") : Shader.Find("Standard");
+    }
+
+    protected override void update_my_ring()
+    {
+        transform.FindChild("Rings").localScale = (1f+0.5f*+attribute_value["ring"])*Vector3.one;
+    }
+
+    protected override void update_my_moon()
+    {
+        transform.FindChild("Moons").localScale = (1f + 0.5f * +attribute_value["moon"]) * Vector3.one;
+    }
+
+    readonly Color[] mycolors = {Color.white, Color.red, Color.blue,Color.green};
+
+    protected override void update_my_color()
+    {
+        int i = Mathf.FloorToInt(attribute_value["color"] / 0.2f) % 4;
+        Material mat = transform.GetChild(3).GetComponent<MeshRenderer>().material;
+        mat.SetColor("_Color",mycolors[i]);
+    }
+
 }

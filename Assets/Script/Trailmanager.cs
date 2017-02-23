@@ -6,6 +6,7 @@ public class Trailmanager : MonoBehaviour {
     public float detection_dist;
     public int trail_count;
     public GameObject inventory;
+    public GameObject blackhole;
 
     //================singleton================
     public static Trailmanager instance = null;
@@ -26,26 +27,6 @@ public class Trailmanager : MonoBehaviour {
         if (!inventory)
             inventory = GameObject.Find("Small_version");
 	}
-
-    //======================test use===============================
-    void Update() {
-        test_generate();
-
-    }
-
-    #region test functions
-    void test_generate() {
-        //if (Input.GetKeyDown(KeyCode.P))
-        //{
-        //    GameObject new_planet = Instantiate(GameObject.Find("Earth"));
-
-        //    //If I failed to sent it onto trail,destroy myself
-        //    if (!send_to_trail(new_planet.GetComponent<planet_behavior>()))
-        //        Destroy(new_planet);
-        //}
-    }
-
-    #endregion
 
 
     //init planet acoording to parameters of _pt
