@@ -22,17 +22,25 @@ public class planet_behavior : MonoBehaviour {
     protected float _yradius;
     protected Vector3 _center;
     protected Quaternion _trail_rotation;
+
+    //instantiated by which class parent
+    public Transform come_from;
   
     //whether the attribute activated
     protected Dictionary<string, bool> activate_attribute= new Dictionary<string, bool>();
     protected Dictionary<string, float> attribute_value = new Dictionary<string, float>();
     protected List<string> attrList;
+    protected List<Transform> my_children;
+
+    //register myself to parent's children list when instantiated
+    //de-register myself when destroyed
+    //if I am the class it self, I will delete my self and grab my parent here.
 
     private float inve_scale=0.2f;
     private int roulette = 0;
 
     #region public methods
-    public bool attribute_init(Dictionary<string, bool> clone_from=null) {
+    public bool attribute_init(Dictionary<string, bool> clone_from=null,bool init=true) {
 
         for (int i = 0; i < usable_attributes.GetLength(0); i++)
         {
@@ -40,6 +48,7 @@ public class planet_behavior : MonoBehaviour {
             activate_attribute[str] = (clone_from == null) ? false : clone_from[str];
         }
         // set default attribute active value
+       
         attribute_value["ring"] = 0f;
         attribute_value["moon"] = 0f;
         attribute_value["color"] = 0f;
@@ -88,6 +97,10 @@ public class planet_behavior : MonoBehaviour {
         {
             activate_attribute[to_activate] = !activate_attribute[to_activate];
             update_attrList();
+            //change all my children
+            foreach (Transform ch in my_children) {
+                ch.GetComponent<planet_behavior>().attribute_init(activate_attribute,false);
+            }
             return true;
         }
         Debug.LogError("Should change key values correctly. Check UI names and planet initializations.");
@@ -112,6 +125,7 @@ public class planet_behavior : MonoBehaviour {
         {
             Transform me_clone = Instantiate(gameObject).transform;
             me_clone.parent = null;
+            me_clone.GetComponent<planet_behavior>().come_from = transform;
             me_clone.position = transform.position;
             me_clone.rotation = transform.rotation;
             Transform _parent = transform;
@@ -162,6 +176,8 @@ public class planet_behavior : MonoBehaviour {
                 else
                 {
                     my_type = planet_type.manipulating;
+                    //add myself from my parent
+                    come_from.GetComponent<planet_behavior>().my_children.Add(transform);
                     hand_to_call.GetOutOfList(gameObject.transform);
                     Debug.Log("Goes to manipulate.");
                     transform.position = GameObject.Find("edit_spot_changing").transform.position + Vector3.up;
@@ -203,14 +219,23 @@ public class planet_behavior : MonoBehaviour {
             return attrList[roulette % attrList.Count];        
     }
 
-    public void save_class() {
-        if (Trailmanager.instance.inventory.transform.childCount < 4)
+    public void save_class(bool overwrite = false) {
+        if (overwrite)
+        {
+            come_from.GetComponent<planet_behavior>().attribute_init(activate_attribute);
+            Destroy(gameObject);
+        }
+        else if (Trailmanager.instance.inventory.transform.childCount < 4)
         {
             transform.SetParent(Trailmanager.instance.inventory.transform);
             self_init(Trailmanager.instance.inventory.transform.GetChild(0).gameObject);
             transform.localScale = Trailmanager.instance.inventory.transform.GetChild(1).localScale;
-            offset = 1.7f;
+            offset = 1.7f * (Trailmanager.instance.inventory.transform.childCount - 2);
             my_type = planet_type.class_model;
+            come_from = null;
+        }
+        else {
+            Debug.Log("Not enough spot for classes.");
         }
     }
 
@@ -296,13 +321,18 @@ public class planet_behavior : MonoBehaviour {
 
     #endregion
 
-    /* private void OnDestroy()
+    void OnDestroy()
      {
-         GameObject exp=Instantiate(Resources.Load("explosion")) as GameObject;
-         exp.transform.position = transform.position;
-         Destroy(exp, 1f);
-         //CALL JOE"S SCRIPT
-     }
-     */
+        if (come_from == null)
+        {
+            Debug.Log("Something does not have parent class is destroying..check the code");
+        }
+        else {
+            List<Transform> parent_children = come_from.GetComponent<planet_behavior>().my_children;
+            if(parent_children.Contains(transform))
+                parent_children.Remove(transform);
+        }
+      }
+    
 }
 

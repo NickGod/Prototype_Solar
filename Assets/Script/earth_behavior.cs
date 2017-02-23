@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 public class earth_behavior : planet_behavior {
     void Awake() {
         attribute_init();
+        my_children = new List<Transform>();
     }
 
     void Start () {

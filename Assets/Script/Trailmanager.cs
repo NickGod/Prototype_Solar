@@ -40,6 +40,7 @@ public class Trailmanager : MonoBehaviour {
         {
             Destroy(_pb.gameObject);
             this_hand.GetOutOfList(_pb.gameObject.transform);
+
             return false;
         }
 
