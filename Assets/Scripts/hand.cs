@@ -4,44 +4,56 @@ using System.Collections.Generic;
 
 public class hand : MonoBehaviour {
     public Transform _rightHand;
-    Transform _rightIndex;
+    static Transform _rightIndex;
     // accept three elements, first is inventory slot
     // second is demonstrate spot
     // third is orbitting slot
  
-    float _spinSpeed = 0.0f;
-    float _spinVeloMax = 5.0f;
 
     public Transform _otherHand;
 
-    float _inventoryTimer = 0;
-    float _inventoryTime = 0.2f;
+    static float _inventoryTimer = 0;
+    static float _inventoryTime = 0.2f;
     static bool _isInventory = false;
 
     public List<Transform> trfList = new List<Transform>();
 
     Transform _grabbedParent;
-    public Transform _grabbed;
-
-    static bool _isEditting = false;
+    Transform _grabbed;
+    static Transform _pointingTrf = null;
+    
     static Transform _editTrf = null;
 
     //States
+    enum State {
+        Prepare,
+        Idle,
+        OnClass,
+        OnObject
+    }
+    static State _myState = State.Prepare;
+
+    //aiming and grabbing/pointing
     bool _isFist = false;
     bool _isGrabbing = false;
+    static float distance = 10.0f;
+
+    //joystick
+    float _joyStick1DVal = 0.0f;
+    float _joyStick1DValMax = 1.0f;
+    static planet_behavior.planet_type _selection;
+    static bool _isSelected = false; //for activate joystick only once every move
+    static bool _confirmed = false;
+
     //resizing
-    static float _originDistance = 0.0f;
-    static bool _onResizing = false;
+    //static float _originDistance = 0.0f;
+    //static bool _onResizing = false;
 
     public bool isRightHand;
     // Update is called once per frame
-
-    // automatic move back
-    bool isMoving = false;
-    Transform movingTar = null;
-
+    
     //right index finger
-    bool isIndexFound = false;
+    static bool isIndexFound = false;
     LineRenderer lineRender;
 
     void Start() {
@@ -58,28 +70,30 @@ public class hand : MonoBehaviour {
 
 
             //calling inventory based on left hand index
-            if (IsInventoryUp()) {
-                _inventoryTimer += Time.deltaTime;
-            } else {
-                _inventoryTimer = 0.0f;
-                if (_isInventory) {
-                    //TODO: inventory off animation and related mehanics here
-                    transform.GetChild(0).gameObject.SetActive(false);
+            if (_myState == State.Idle) {
+                if (IsInventoryUp()) {
+                    _inventoryTimer += Time.deltaTime;
+                } else {
+                    _inventoryTimer = 0.0f;
+                    if (_isInventory) {
+                        //TODO: inventory off animation and related mehanics here
+                        transform.GetChild(0).gameObject.SetActive(false);
+                    }
+                    _isInventory = false;
                 }
-                _isInventory = false;
-            }
-            if (_inventoryTimer >= _inventoryTime && !_isInventory) {
-                // this function only call once for each index up
-                // there is up time for inventory to appear
-                //TODO: inventory on animation and related mechanics here
-                _isInventory = true;
-                transform.GetChild(0).gameObject.SetActive(true);
+                if (_inventoryTimer >= _inventoryTime && !_isInventory) {
+                    // this function only call once for each index up
+                    // there is up time for inventory to appear
+                    //TODO: inventory on animation and related mechanics here
+                    _isInventory = true;
+                    transform.GetChild(0).gameObject.SetActive(true);
+                }
             }
         } else {
             //for right hand
             //transform.localPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
             //transform.localRotation = OVRInput.GetLocalControllerRotation(OVRInput.Controller.RTouch);
-
+            
             if (!isIndexFound) {
                 try {
                     Transform _indexParent = _rightHand.GetChild(0).GetChild(0).GetChild(0);
@@ -95,45 +109,71 @@ public class hand : MonoBehaviour {
             }
 
             //resizing
-            if (IsBothFist() && _isEditting && !_onResizing) {
-                _onResizing = true;
-                _originDistance = Vector3.Distance(transform.position, _otherHand.position);
-            }
+            //if (IsBothFist() && _isEditting && !_onResizing) {
+            //    _onResizing = true;
+            //    _originDistance = Vector3.Distance(transform.position, _otherHand.position);
+            //}
 
-            if (!IsBothFist()){
-                _onResizing = false;
-                _originDistance = 0.0f;
-            }
-        
-            if (_onResizing) {
-                float realScale = Vector3.Distance(transform.position, _otherHand.position) / _originDistance;
-                if (realScale >= 1.5f) {
-                    realScale = 1.49f;
-                } else if (realScale <= 0.5f) {
-                    realScale = 0.51f;
+            //if (!IsBothFist()){
+            //    _onResizing = false;
+            //    _originDistance = 0.0f;
+            //}
+
+            //if (_onResizing) {
+            //    float realScale = Vector3.Distance(transform.position, _otherHand.position) / _originDistance;
+            //    if (realScale >= 1.5f) {
+            //        realScale = 1.49f;
+            //    } else if (realScale <= 0.5f) {
+            //        realScale = 0.51f;
+            //    }
+            //    _editTrf.GetComponent<planet_behavior>().my_scale = realScale;
+            //}
+
+            ////Axis rotation
+            //if (_isEditting) {
+            //    _editTrf.up = SetAxis();
+            //}
+
+            //changing parameter by moving joysticks
+            if (IsAxis2Touched() && _myState == State.OnObject) {
+                if (!_confirmed) {
+                    //on selecting which attribute to change
+                    float val = OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x * Time.deltaTime;
+                    if (!_isSelected) {
+                        if (val > 0.5f) {
+                            _isSelected = true;
+                            val = 1;
+                            //TODO:
+                            //_selection = luna_function();
+                        } else if (val < -0.5f) {
+                            _isSelected = true;
+                            val = -1;
+                            //TODO:
+                            //_selection = luna_function();
+                        }
+                    }
+                    if (val <= 0.2f && val >= -0.2f) {
+                        _isSelected = false;
+                    }
+                } else {
+                    //on changing value of the attribute
+                    SetJoyStick1DVal();
+                    //TODO: call luna function with parameter _selection and value
                 }
-                _editTrf.GetComponent<planet_behavior>().my_scale = realScale;
-            }
-            
-            //Axis rotation
-            if (_isEditting) {
-                _editTrf.up = SetAxis();
-            }
-            
-            //Rotating speed
-            if (IsAxis2Touched() && _isEditting) {
-                SetSpinSpeed();
-                _editTrf.GetComponent<planet_behavior>().self_spin_spd = _spinSpeed;
-                //TODO: assign spin speed to editting obj
+                if (IsConfirmed()) {
+                    _confirmed = !_confirmed;
+                }
+                
             }
 
-            if (OVRInput.GetDown(OVRInput.Button.Two) && _isEditting) {
-                //TODO: fly to orbit
-                planet_behavior pb = _editTrf.GetComponent<planet_behavior>();
-                Trailmanager.instance.send_to_trail(pb,this);
-                _isEditting = false;
-                _editTrf = null;
-            }
+            //TODO: keep mechanism but call when it hits the black hole
+            //if (OVRInput.GetDown(OVRInput.Button.Two) && _isEditting) {
+            //    //TODO: fly to orbit
+            //    planet_behavior pb = _editTrf.GetComponent<planet_behavior>();
+            //    Trailmanager.instance.send_to_trail(pb,this);
+            //    _isEditting = false;
+            //    _editTrf = null;
+            //}
 
             //TODO: shooting
             if (IsAiming() && isIndexFound) {
@@ -149,17 +189,48 @@ public class hand : MonoBehaviour {
                     Ray shootingRay = new Ray(_rightIndex.position, _rightIndex.right);
 
                     if (Physics.Raycast(shootingRay, out hit)) {
-                        planet_behavior pb = hit.collider.gameObject.GetComponent<planet_behavior>();
-                        if (pb && pb.my_type == planet_behavior.planet_type.real_planet) {
-                            pb.delete_me();
+                        if (_myState == State.Prepare) {
+                            if (hit.collider.gameObject.name == "SetUpSolarSystem") {
+                                //TODO: enable solar system
+                            } else if (hit.collider.gameObject.name == "SetUpSun") {
+                                //TODO: enable sun
+                                //TODO: set _editTrf to sun
+                                //_editTrf = <Sun> 
+                                //_selection = lunaFunction.getselection(0)
+                                _isSelected = false;
+                                _confirmed = false;
+                                _myState = State.OnObject;
+                            }
+                        } else if (_myState == State.Idle) {
+                            //TODO: point planet from orbit 
+                            GameObject underCtrObj = hit.collider.gameObject;
+                            //TODO: check the type of planet and enable control only when
+                            // it is a real planet object
+                            if (underCtrObj.tag == Tags.Grabbable && realplanet && !_grabbed) {
+                                _pointingTrf = underCtrObj.transform;
+                                _pointingTrf = _pointingTrf.GetComponent<planet_behavior>().OnGrab();
+                            }
+                            
+                        } else if (_myState == State.OnClass) {
+                            //TODO: 1. selecting attribute to the current editing class
+                            //2. choosing button to either creating a new class or modifying current class
+                            //if (clicking button) {
+                            //    _myState = State.Idle;
+                            //}
+                        } else if (_myState == State.OnObject) {
+                            //TODO: clicking button of "instantiate"
+                            //if (clicking button) {
+                            //    _myState = State.Idle;
+                            //}
                         }
                     }
                 }
+                //TODO: if release middle finger call release
             } else {
                 lineRender.enabled = false;
+                _pointingTrf = null;
+                //TODO: if press index trigger also call release
             }
-
-
             ////test
             //if (IsAxis2Touched()) {
             //    SetSpinSpeed();
@@ -172,52 +243,76 @@ public class hand : MonoBehaviour {
             //    Debug.Log("Fist");
             //}
         }
+        if (_myState == State.Idle) {
+            if (_pointingTrf) {
+                RaycastHit hit;
+                Ray draggingRay = new Ray(_rightIndex.position, _rightIndex.right);
 
-        //grabbing
-        _isGrabbing = false;
-        if (IsFist() && !_isFist) {
-            _isFist = true;
-            _isGrabbing = true;
-        }
-        if (_isGrabbing) {
-            if (_grabbed == null) {
-                int count = trfList.Count;
-                for (int i = count - 1; i >= 0; i--) {
-                    Transform trf = trfList[i];
-                    if (trf == null || !trf.gameObject.activeSelf) {
-                        trfList.Remove(trf);
+                Vector3 _target;
+                if (Physics.Raycast(draggingRay, out hit)) {
+                    GameObject _hitObj = hit.collider.gameObject;
+                    if (_hitObj.tag == Tags.Reachable) {
+                        _target = _hitObj.transform.position;
                     }
+                } else {
+                    _target = _rightIndex.position + _rightIndex.right * distance;
                 }
-                Transform target = GetClosest();
-                //test luna merge
-                if (target) {
-                    _isEditting = false;
-                    _grabbed = target.GetComponent<planet_behavior>().OnGrab();
-                    if (!trfList.Contains(_grabbed)) {
-                        trfList.Add(_grabbed);
+                //TODO: update pointTrf position and check if it should be deleted
+
+
+                //planet_behavior pb = hit.collider.gameobject.getcomponent<planet_behavior>();
+                //if (pb && pb.my_type == planet_behavior.planet_type.real_planet) {
+                //    pb.delete_me();
+                //}
+            }
+
+            //pointing and dragging release
+            if (!IsInShootingGesture() && _pointingTrf) {
+                _pointingTrf.GetComponent<planet_behavior>().OnRelease(this);
+                _pointingTrf = null;
+            }
+
+            //grabbing
+            _isGrabbing = false;
+            if (IsFist() && !_isFist) {
+                _isFist = true;
+                _isGrabbing = true;
+            }
+            if (_isGrabbing) {
+                if (_grabbed == null) {
+                    int count = trfList.Count;
+                    for (int i = count - 1; i >= 0; i--) {
+                        Transform trf = trfList[i];
+                        if (trf == null || !trf.gameObject.activeSelf) {
+                            trfList.Remove(trf);
+                        }
                     }
-                    if (_grabbed) {
-                        if (_grabbed == _editTrf) {
-                            _editTrf = null;
+                    Transform target = GetClosest();
+                    if (target) {
+                        _grabbed = target.GetComponent<planet_behavior>().OnGrab();
+                        if (!trfList.Contains(_grabbed)) {
+                            trfList.Add(_grabbed);
                         }
-                        if (_grabbed.parent == _otherHand) {
-                            _otherHand.GetComponent<hand>().LoseControl();
+                        if (_grabbed) {
+                            if (_grabbed.parent == _otherHand) {
+                                _otherHand.GetComponent<hand>().LoseControl();
+                            }
+                            _grabbedParent = null;
+                            _grabbed.parent = transform;
                         }
-                        _grabbedParent = null;
-                        _grabbed.parent = transform;
                     }
                 }
             }
-        } 
-        
-        if (!IsFist()){
-            if (_grabbed) {
-                _grabbed.parent = _grabbedParent;
-                LoseControl();
-            }
-            _isFist = false;
-        }
 
+            //grabbing release
+            if (!IsFist()) {
+                if (_grabbed) {
+                    _grabbed.parent = _grabbedParent;
+                    LoseControl();
+                }
+                _isFist = false;
+            }
+        }
     }
 
     void OnTriggerEnter(Collider other) {
@@ -253,12 +348,12 @@ public class hand : MonoBehaviour {
         }
     }
 
-    Vector3 SetAxis() {
-        if (isRightHand) {
-            return transform.up;
-        }
-        return Vector3.up;
-    }
+    //Vector3 SetAxis() {
+    //    if (isRightHand) {
+    //        return transform.up;
+    //    }
+    //    return Vector3.up;
+    //}
 
     bool IsAiming() {
         return !(OVRInput.Get(OVRInput.Touch.SecondaryIndexTrigger) || OVRInput.Get(OVRInput.NearTouch.SecondaryIndexTrigger));
@@ -267,8 +362,24 @@ public class hand : MonoBehaviour {
     bool IsShooting() {
         if (isRightHand) {
             if (IsAiming()) {
+                return OVRInput.GetDown(OVRInput.Button.SecondaryHandTrigger);
+            }
+        }
+        return false;
+    }
+
+    bool IsInShootingGesture() {
+        if (isRightHand) {
+            if (IsAiming()) {
                 return OVRInput.Get(OVRInput.Button.SecondaryHandTrigger);
             }
+        }
+        return false;
+    }
+
+    bool IsConfirmed() {
+        if (isRightHand) {
+            return OVRInput.GetDown(OVRInput.Button.SecondaryHandTrigger);
         }
         return false;
     }
@@ -281,13 +392,13 @@ public class hand : MonoBehaviour {
         }
     }
 
-    void SetSpinSpeed() {
+    void SetJoyStick1DVal() {
         if (isRightHand) {
-            _spinSpeed += OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x * Time.deltaTime;
-            if (_spinSpeed > _spinVeloMax) {
-                _spinSpeed = _spinVeloMax;
-            } else if (_spinSpeed < -_spinVeloMax) {
-                _spinSpeed = -_spinVeloMax;
+            _joyStick1DVal += OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x * Time.deltaTime;
+            if (_joyStick1DVal > _joyStick1DValMax) {
+                _joyStick1DVal = _joyStick1DValMax;
+            } else if (_joyStick1DVal < 0) {
+                _joyStick1DVal = 0;
             }
         }
     }
@@ -328,13 +439,13 @@ public class hand : MonoBehaviour {
         return index && middle && thumb;
     }
 
-    bool IsBothFist() {
-        bool index = OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger) && OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger);
-        bool middle = OVRInput.Get(OVRInput.Button.SecondaryHandTrigger) && OVRInput.Get(OVRInput.Button.PrimaryHandTrigger);
-        bool thumb = OVRInput.Get(OVRInput.Touch.SecondaryThumbRest) || OVRInput.Get(OVRInput.Touch.One) || OVRInput.Get(OVRInput.Touch.Two);
-        thumb = thumb && (OVRInput.Get(OVRInput.Touch.PrimaryThumbRest) || OVRInput.Get(OVRInput.Touch.Three) || OVRInput.Get(OVRInput.Touch.Four));
-        return index && middle && thumb;
-    }
+    //bool IsBothFist() {
+    //    bool index = OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger) && OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger);
+    //    bool middle = OVRInput.Get(OVRInput.Button.SecondaryHandTrigger) && OVRInput.Get(OVRInput.Button.PrimaryHandTrigger);
+    //    bool thumb = OVRInput.Get(OVRInput.Touch.SecondaryThumbRest) || OVRInput.Get(OVRInput.Touch.One) || OVRInput.Get(OVRInput.Touch.Two);
+    //    thumb = thumb && (OVRInput.Get(OVRInput.Touch.PrimaryThumbRest) || OVRInput.Get(OVRInput.Touch.Three) || OVRInput.Get(OVRInput.Touch.Four));
+    //    return index && middle && thumb;
+    //}
 
     public Transform GetGrabbedParent() {
         return _grabbedParent;
@@ -347,13 +458,19 @@ public class hand : MonoBehaviour {
                 //to specific spot(either editting spot or inventory or orbit trail), then update onEditting info
                 //if fly to editting spot, _editTrf should be set as the grabbed obj
                 //Question? should we change the isEditting to true after the planet is exactly in the place
-                _editTrf = _grabbed.GetComponent<planet_behavior>().OnRelease(_editTrf, this);
+                _editTrf = _grabbed.GetComponent<planet_behavior>().OnRelease(this);
 
-                ////TODO: do current test
-                //if (trfList.Contains(_editTrf)) {
-                //    trfList.Remove(_editTrf);
-                //}
-                _isEditting = _editTrf ? true : false;
+                //TODO: update state from _editTrf
+                if (_editTrf.State == LunaState.OnClass) {
+                    _myState = State.OnClass;
+                } else if (_editTrf.State == LunaState.OnObject) {
+                    //TODO:
+                    //_selection = lunaFunction.getselection(0)
+                    _isSelected = false;
+                    _confirmed = false;
+                    _myState = State.OnObject;
+
+                }
             }
             _grabbed = null;
             _grabbedParent = null;
@@ -364,5 +481,9 @@ public class hand : MonoBehaviour {
         if (trfList.Contains(trf)) {
             trfList.Remove(trf);
         }
+    }
+
+    public void SetPointingTrf(Transform trf) {
+        _pointingTrf = trf;
     }
 }
