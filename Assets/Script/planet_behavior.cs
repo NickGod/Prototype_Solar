@@ -98,8 +98,10 @@ public class planet_behavior : MonoBehaviour {
             activate_attribute[to_activate] = !activate_attribute[to_activate];
             update_attrList();
             //change all my children
-            foreach (Transform ch in my_children) {
+            foreach (Transform ch in come_from.GetComponent<planet_behavior>().my_children) {
                 ch.GetComponent<planet_behavior>().attribute_init(activate_attribute,false);
+                Debug.Log(gameObject.name + "should be changed by" + come_from.name);
+                Debug.Log("parent class is being changed.");
             }
             return true;
         }
@@ -178,6 +180,7 @@ public class planet_behavior : MonoBehaviour {
                     my_type = planet_type.manipulating;
                     //add myself from my parent
                     come_from.GetComponent<planet_behavior>().my_children.Add(transform);
+                    Debug.Log("I am added in to my parent:" + come_from.name);
                     hand_to_call.GetOutOfList(gameObject.transform);
                     Debug.Log("Goes to manipulate.");
                     transform.position = GameObject.Find("edit_spot_changing").transform.position + Vector3.up;
