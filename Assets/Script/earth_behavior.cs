@@ -3,9 +3,13 @@ using UnityEngine.UI;
 using System.Collections;
 
 public class earth_behavior : planet_behavior {
-    
-	void Start () {
+    void Awake() {
+        attribute_init();
+    }
+
+    void Start () {
         self_init(target_trail);
+        
     }
 	
 	
@@ -22,23 +26,21 @@ public class earth_behavior : planet_behavior {
                 }
                 return;
             case planet_type.in_hand:
-                float inter_scale= interpolation(Trailmanager.instance.detection_dist, Trailmanager.instance.inventory);
-                transform.localScale = Vector3.one * inter_scale;
-                if (Input.GetKeyDown(KeyCode.M))
-                {
-                   // OnRelease(null).GetComponent<earth_behavior>().highlighted = true;
+                
+                return;
+            case planet_type.class_change:
+                //behavior when changing class
+                update_UI(1);
+                if (Input.GetKeyDown(KeyCode.S)) {
+                    save_class();
                 }
                 return;
+
             case planet_type.manipulating:
                 transform.GetChild(3).Rotate(-self_spin_spd * Vector3.up);
-                update_UI();
-                scale_me();
-                transform.position += 0.02f*(Vector3.one * 0.5f - transform.position);
-                if (Input.GetKeyDown(KeyCode.N))
-                {
-                    //Trailmanager.instance.send_to_trail(this);
-                }
+                update_UI(2);           
                 return;
+
             case planet_type.real_planet:
                 //** Add one condition on whether it is on hand
                 transform.GetChild(3).Rotate(-self_spin_spd * Vector3.up);
@@ -51,12 +53,29 @@ public class earth_behavior : planet_behavior {
 
     }
 
-    void update_UI(bool specs=true)
+    void update_UI(int specs=0)
     {
         Text earth_specs;
         earth_specs = GetComponentInChildren<Text>();
-        if (specs)
-            earth_specs.text = "Size:" + my_scale.ToString("F2") + " Spin Speed:" + self_spin_spd.ToString("F2");
+        if (specs == 1)
+        {
+            string buffer = "Activating:";
+            foreach (string str in activated_attr())
+            {
+                buffer += str;
+                buffer += " ";
+            }
+            earth_specs.text = buffer;
+        }
+        else if (specs == 2) {
+            string buffer = " ";
+            foreach (string str in activated_attr())
+            {
+                buffer += str;
+                buffer += ":" + attribute_value[str].ToString()+" ";
+            }
+            earth_specs.text = buffer;
+        }
         else
             earth_specs.text = "MyPlanet";
     }

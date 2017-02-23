@@ -112,7 +112,7 @@ public class hand : MonoBehaviour {
                 } else if (realScale <= 0.5f) {
                     realScale = 0.51f;
                 }
-                _editTrf.GetComponent<planet_behavior>().my_scale = realScale;
+               // _editTrf.GetComponent<planet_behavior>().my_scale = realScale;
             }
             
             //Axis rotation
@@ -347,7 +347,7 @@ public class hand : MonoBehaviour {
                 //to specific spot(either editting spot or inventory or orbit trail), then update onEditting info
                 //if fly to editting spot, _editTrf should be set as the grabbed obj
                 //Question? should we change the isEditting to true after the planet is exactly in the place
-                _editTrf = _grabbed.GetComponent<planet_behavior>().OnRelease(_editTrf, this);
+               // _editTrf = _grabbed.GetComponent<planet_behavior>().OnRelease(_editTrf, this);
 
                 ////TODO: do current test
                 //if (trfList.Contains(_editTrf)) {
