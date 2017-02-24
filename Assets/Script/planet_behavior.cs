@@ -54,6 +54,7 @@ public class planet_behavior : MonoBehaviour {
         attribute_value["color"] = 0f;
         attribute_value["size"] = 0f;
         update_attrList();
+        update_look();
         return true;
     }
 
@@ -97,7 +98,12 @@ public class planet_behavior : MonoBehaviour {
         {
             activate_attribute[to_activate] = !activate_attribute[to_activate];
             update_attrList();
+            update_look();
             //change all my children
+            if (come_from == null) {
+                Debug.LogWarning("Check for the parent.");
+                return false;
+            }
             foreach (Transform ch in come_from.GetComponent<planet_behavior>().my_children) {
                 ch.GetComponent<planet_behavior>().attribute_init(activate_attribute,false);
                 Debug.Log(gameObject.name + "should be changed by" + come_from.name);
@@ -320,6 +326,9 @@ public class planet_behavior : MonoBehaviour {
     protected virtual void update_my_size() { }
 
     protected virtual void highlight(){ }
+
+    //control my appearance according to the attribute table
+    protected virtual void update_look() { }
 
 
     #endregion

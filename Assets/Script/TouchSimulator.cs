@@ -32,7 +32,7 @@ public class TouchSimulator : MonoBehaviour
             if (Input.GetMouseButtonDown(0)) {
                 if (_hit.collider.gameObject.tag == "classui")
                 {
-                    _hit.collider.gameObject.SendMessage("set_active",GameObject.Find("TestEarth").transform);
+                    _hit.collider.gameObject.SendMessage("set_active",GameObject.Find("NewEarth").transform);
                 }
                 if (_hit.collider.gameObject.tag == "Grabbable")
                 {

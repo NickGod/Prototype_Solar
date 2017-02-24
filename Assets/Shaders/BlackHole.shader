@@ -9,7 +9,7 @@
 			LOD 200
 
 			CGPROGRAM
-			#pragma surface surf Lambert alpha
+			#pragma surface surf Lambert
 
 		// Use shader model 3.0 target, to get nicer looking lighting
 		#pragma target 3.0
@@ -24,8 +24,10 @@
 		fixed4 _Color;
 
 		void surf (Input IN, inout SurfaceOutput o) {
-			o.Albedo = tex2D(_MainTex, IN.uv_MainTex).rgb;
-			o.Alpha = 0.5;
+			float2 new_uv = IN.uv_MainTex;
+			new_uv.x *=  1+0.3*_SinTime.b;
+			new_uv.y *= 1+0.3*_CosTime.b;
+			o.Albedo = 0.2 *tex2D(_MainTex, new_uv).rgb;
 			half rim = 1.0 - saturate(dot(normalize(IN.viewDir), o.Normal));
 			o.Emission = _RimColor.rgb * pow(rim, _RimPower);
 		}

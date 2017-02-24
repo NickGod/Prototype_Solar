@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class earth_behavior : planet_behavior {
+    public static readonly Color[] mycolors = { Color.white, Color.red, Color.blue, Color.green };
     void Awake() {
         attribute_init();
         my_children = new List<Transform>();
@@ -13,8 +14,7 @@ public class earth_behavior : planet_behavior {
         self_init(target_trail);
         
     }
-	
-	
+
 	void Update () {
         highlight();
         transform.GetChild(0).Rotate(self_spin_spd * (-0.2f + 0.1f * Random.value) * Vector3.up);
@@ -33,9 +33,6 @@ public class earth_behavior : planet_behavior {
             case planet_type.class_change:
                 //behavior when changing class
                 update_UI(1);
-                if (Input.GetKeyDown(KeyCode.S)) {
-                    save_class();
-                }
                 return;
 
             case planet_type.manipulating:
@@ -101,15 +98,34 @@ public class earth_behavior : planet_behavior {
 
     protected override void update_my_ring()
     {
-        transform.FindChild("Rings").localScale = (1f+0.5f*+attribute_value["ring"])*Vector3.one;
+        transform.FindChild("Rings").Rotate(3f* attribute_value["ring"]*Vector3.left); 
     }
 
     protected override void update_my_moon()
     {
-        transform.FindChild("Moons").localScale = (1f + 0.5f * +attribute_value["moon"]) * Vector3.one;
+        //CHANGE HERE update moon numbers accordingly
+        Transform moons = transform.FindChild("Moons");
+        if (attribute_value["moon"] < 0.33f)
+        {
+            moons.GetChild(0).gameObject.SetActive(true);
+            moons.GetChild(1).gameObject.SetActive(false);
+            moons.GetChild(2).gameObject.SetActive(false);
+        }
+        else if (attribute_value["moon"] < 0.66f)
+        {
+            moons.GetChild(0).gameObject.SetActive(true);
+            moons.GetChild(1).gameObject.SetActive(true);
+            moons.GetChild(2).gameObject.SetActive(false);
+        }
+        else {
+            moons.GetChild(0).gameObject.SetActive(true);
+            moons.GetChild(1).gameObject.SetActive(true);
+            moons.GetChild(2).gameObject.SetActive(true);
+        }
+
     }
 
-    readonly Color[] mycolors = {Color.white, Color.red, Color.blue,Color.green};
+   
 
     protected override void update_my_color()
     {
@@ -120,6 +136,16 @@ public class earth_behavior : planet_behavior {
 
     protected override void update_my_size() {
         transform.localScale= (1f + 0.5f * +attribute_value["size"]) * Vector3.one;
+    }
+
+
+    protected override void update_look()
+    {
+        transform.GetChild(4).gameObject.SetActive(activate_attribute["ring"]);
+        transform.GetChild(5).gameObject.SetActive(activate_attribute["moon"]);
+        if (!activate_attribute["color"]) {
+            transform.GetChild(3).GetComponent<MeshRenderer>().material.SetColor("_Color", Color.grey);
+        }
     }
 
 }
