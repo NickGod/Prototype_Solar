@@ -4,6 +4,10 @@ using System.Collections.Generic;
 
 public class hand : MonoBehaviour {
     public Transform _rightHand;
+    public Material _solarSystemSkyBox;
+    public GameObject _sunInitButton;
+    public GameObject _solarEnv;
+    public GameObject _sunObj;
     static Transform _rightIndex;
     // accept three elements, first is inventory slot
     // second is demonstrate spot
@@ -58,7 +62,6 @@ public class hand : MonoBehaviour {
 
     void Start() {
         lineRender = GetComponent<LineRenderer>();
-        UI_Manager.instance.UI_switch(0);
     }
 
     void Update() {
@@ -180,16 +183,30 @@ public class hand : MonoBehaviour {
 
                     if (Physics.Raycast(shootingRay, out hit)) {
                         if (_myState == State.Prepare) {
-                            if (hit.collider.gameObject.name == "SetUpSolarSystem") {
-                                //TODO: enable solar system
-                            } else if (hit.collider.gameObject.name == "SetUpSun") {
-                                //TODO: enable sun
-                                //TODO: set _editTrf to sun
-                                //_editTrf = <Sun> 
-                                //_selection = lunaFunction.getselection(0)
-                                _isSelected = false;
-                                _confirmed = false;
-                                _myState = State.OnObject;
+                            Transform _hittingStuff = hit.collider.gameObject.transform;
+                            if (_hittingStuff.tag == Tags.Button) {
+                                if (_hittingStuff.name == "step1") {
+                                    RenderSettings.skybox = _solarSystemSkyBox;
+                                    Destroy(_hittingStuff.gameObject);
+                                    _sunInitButton.SetActive(true);
+                                    //INDO: enable solar system
+                                } else if (_hittingStuff.name == "step2") {
+                                    //TODO: enable sun
+                                    //TODO: set _editTrf to sun
+                                    Destroy(_hittingStuff.gameObject);
+
+                                    _solarEnv.SetActive(true);
+                                    UI_Manager.instance.UI_switch(2);
+
+                                    //object
+                                    _sunObj.SetActive(true);
+                                    _editTrf = _sunObj.transform;
+
+                                    _selection = _editTrf.GetComponent<planet_behavior>().current_attribute(0);
+                                    _isSelected = false;
+                                    _confirmed = false;
+                                    _myState = State.OnObject;
+                                }
                             }
                         } else if (_myState == State.Idle) {
                             //INDO: point planet from orbit 
