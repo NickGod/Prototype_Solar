@@ -100,10 +100,6 @@ public class planet_behavior : MonoBehaviour {
             update_attrList();
             update_look();
             //change all my children
-            if (come_from == null) {
-                Debug.LogWarning("Check for the parent.");
-                return false;
-            }
             foreach (Transform ch in come_from.GetComponent<planet_behavior>().my_children) {
                 ch.GetComponent<planet_behavior>().attribute_init(activate_attribute,false);
                 Debug.Log(gameObject.name + "should be changed by" + come_from.name);
@@ -175,6 +171,7 @@ public class planet_behavior : MonoBehaviour {
                 if (transform.position.x<-0.2f)
                 {
                     my_type = planet_type.class_change;
+                    UI_Manager.instance.UI_switch(1);
                     hand_to_call.GetOutOfList(gameObject.transform);
                     Debug.Log("Goes to class change.");
                     transform.position = GameObject.Find("edit_spot_class").transform.position + 0.3f*Vector3.up;
@@ -185,6 +182,7 @@ public class planet_behavior : MonoBehaviour {
                 {
                     my_type = planet_type.manipulating;
                     //add myself from my parent
+                    UI_Manager.instance.UI_switch(2);
                     come_from.GetComponent<planet_behavior>().my_children.Add(transform);
                     Debug.Log("I am added in to my parent:" + come_from.name);
                     hand_to_call.GetOutOfList(gameObject.transform);
@@ -204,6 +202,10 @@ public class planet_behavior : MonoBehaviour {
     }
 
     public bool change_attribute(string name, float val) {
+        if (name == null) {
+            Debug.Log("Nothing is being changed.");
+            return false;
+        }
         if (!activate_attribute.ContainsKey(name)) {
             Debug.LogWarning("Attribute does not exist.");
             return false;
@@ -236,14 +238,20 @@ public class planet_behavior : MonoBehaviour {
         }
         else if (Trailmanager.instance.inventory.transform.childCount < 4)
         {
+            //create new class
             transform.SetParent(Trailmanager.instance.inventory.transform);
             self_init(Trailmanager.instance.inventory.transform.GetChild(0).gameObject);
             transform.localScale = Trailmanager.instance.inventory.transform.GetChild(1).localScale;
             offset = 1.7f * (Trailmanager.instance.inventory.transform.childCount - 2);
             my_type = planet_type.class_model;
+            revert_changes();
             come_from = null;
+            transform.localPosition = Vector3.zero;
         }
         else {
+            //=+++++++++++before destroying it ,revert all parent's children list status
+            Destroy(gameObject);
+            revert_changes();
             Debug.Log("Not enough spot for classes.");
         }
     }
@@ -302,6 +310,13 @@ public class planet_behavior : MonoBehaviour {
         
     }
 
+    private void revert_changes() {
+        foreach (Transform ch in come_from.GetComponent<planet_behavior>().my_children) {
+            ch.GetComponent<planet_behavior>().attribute_init(come_from.GetComponent<planet_behavior>().activate_attribute, false);
+            Debug.LogWarning("Revert all my parent's children");
+        }
+    }
+
     //} ============================================obsolete============================
     //protected float interpolation(float max_distance, GameObject inventory) {
     //    //get linear interpolation between current scale and final scale
@@ -327,7 +342,6 @@ public class planet_behavior : MonoBehaviour {
 
     protected virtual void highlight(){ }
 
-    //control my appearance according to the attribute table
     protected virtual void update_look() { }
 
 
@@ -343,7 +357,8 @@ public class planet_behavior : MonoBehaviour {
             List<Transform> parent_children = come_from.GetComponent<planet_behavior>().my_children;
             if(parent_children.Contains(transform))
                 parent_children.Remove(transform);
-        }
+        }        
+
       }
     
 }

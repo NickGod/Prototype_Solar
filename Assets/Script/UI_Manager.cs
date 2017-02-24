@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UIManager : MonoBehaviour {
-    public static UIManager instance = null;
+public class UI_Manager : MonoBehaviour {
+    public static UI_Manager instance = null;
     public GameObject UIParent_class;
     public GameObject UIParent_object;
     
@@ -17,11 +17,19 @@ public class UIManager : MonoBehaviour {
 	}
 	
 	
-	public void UI_messange_translator (string msg,Transform target) {
+	public void UI_messange_translator (string msg,Transform target,hand _hand = null) {
         //parse the message got from UI and pass it to target transform
         switch (msg){
             //should target be grabbale only?
             case "instantiate":
+                //if there is no hand, should deny it
+                if (_hand == null) {
+                    Debug.LogWarning("Should have hand specfied.");
+                    return;
+                }
+                else {
+                    Trailmanager.instance.send_to_trail(target.GetComponent<planet_behavior>(),_hand);
+                }
                 //send to trail
                 return;
             case "save_class":
@@ -42,7 +50,9 @@ public class UIManager : MonoBehaviour {
         //controls UI-group on/off
         switch (phase_index) {
             case 0:
-                //only sun
+                //no ui should show up
+                UIParent_class.SetActive(false);
+                UIParent_object.SetActive(false);
                 return;
             case 1:
                 //class modification

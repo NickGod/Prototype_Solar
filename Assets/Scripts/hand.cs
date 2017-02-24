@@ -58,6 +58,7 @@ public class hand : MonoBehaviour {
 
     void Start() {
         lineRender = GetComponent<LineRenderer>();
+        UI_Manager.instance.UI_switch(0);
     }
 
     void Update() {
@@ -207,11 +208,13 @@ public class hand : MonoBehaviour {
                             Transform _hittedStuff = hit.collider.transform;
                             if (_hittedStuff.tag == Tags.ClassUI) {
                                 _hittedStuff.GetComponent<ClassUI>().set_active(_editTrf);
+                                _hittedStuff.SendMessage("highlight");
                             }
                             //2. choosing button to either creating a new class or modifying current class
                             if (_hittedStuff.tag == Tags.Button) {
                                 //if (buttonname == "save") {
-                                    _editTrf.GetComponent<planet_behavior>().save_class();
+                                _hittedStuff.SendMessage("highlight");
+                                _hittedStuff.GetComponent<interaction_button>().OnActivated(_editTrf);
                                 //} else if (buttonname == "create") {
                                 //    //TODO: create a new class
                                 //}
@@ -220,11 +223,13 @@ public class hand : MonoBehaviour {
                             }
                         } else if (_myState == State.OnObject) {
                             //INDO: clicking button of "instantiate"
-                            //if (clicking button) {
-                                Trailmanager.instance.send_to_trail(_editTrf.GetComponent<planet_behavior>(), this);
+                            Transform _hittedStuff = hit.collider.transform;
+                            if (_hittedStuff.tag == Tags.Button) {
+                                _hittedStuff.GetComponent<interaction_button>().OnActivated(_editTrf, this);
+                                _hittedStuff.SendMessage("highlight");
                                 _myState = State.Idle;
                                 _editTrf = null;
-                            //}
+                            }
                         }
                     }
                 }

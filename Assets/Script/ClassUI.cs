@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class ClassUI : MonoBehaviour {
     public string attribute_name;
@@ -16,10 +17,14 @@ public class ClassUI : MonoBehaviour {
         return true;
     }
 
-    void hightlight() {
-        //if this attribute is added, set the UI shader to highlight;
-        //else set it back to origin
-
+    IEnumerator highlight() {
+        MeshRenderer[] children_rends = GetComponentsInChildren<MeshRenderer>();
+        for (int i = 0; i < 10; i++) {
+            foreach (MeshRenderer _r in children_rends) {
+                _r.material.SetColor("_EmissionColor", Color.Lerp(Color.black, Color.white, 1f - Mathf.Abs(i - 5) * 0.2f));
+            }
+            yield return new WaitForEndOfFrame();
+        }
     }
 
 }

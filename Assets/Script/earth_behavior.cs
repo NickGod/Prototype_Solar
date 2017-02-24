@@ -26,6 +26,7 @@ public class earth_behavior : planet_behavior {
                 if (Input.GetKeyDown(KeyCode.L)) {
                     OnGrab().GetComponent<earth_behavior>().highlighted=true;
                 }
+                update_UI(0);
                 return;
             case planet_type.in_hand:
                 
@@ -47,7 +48,7 @@ public class earth_behavior : planet_behavior {
                 //** Add one condition on whether it is on hand
                 transform.GetChild(3).Rotate(-self_spin_spd * Vector3.up);
                 rotate_on_trail();
-                update_UI(2);
+                update_UI(3);
                 if (Vector3.Distance(Trailmanager.instance.blackhole.transform.position, transform.position) < 2f) {
                     
                     delete_me();        
@@ -74,14 +75,23 @@ public class earth_behavior : planet_behavior {
             earth_specs.text = buffer;
         }
         else if (specs == 2) {
-            string buffer = " ";
-            foreach (string str in attrList)
-            {
-                buffer += str;
-                buffer += ":" + attribute_value[str].ToString("F4")+" ";
+            string buffer = "";
+            if (attrList.Count == 0) {
+                buffer = "No attribute was added.";
+            } else {
+                buffer += "<- ";
+                buffer += "Changing: "+current_attribute(0);
+                buffer += " ->";
             }
             earth_specs.text = buffer;
-        }
+        } 
+        else if (specs == 3) {
+            string buffer = "";
+            foreach (string str in attrList ) {
+                buffer += str + " ";
+            }
+            earth_specs.text = buffer;
+        } 
         else
             earth_specs.text = "MyPlanet";
     }
@@ -98,7 +108,7 @@ public class earth_behavior : planet_behavior {
 
     protected override void update_my_ring()
     {
-        transform.FindChild("Rings").Rotate(3f* attribute_value["ring"]*Vector3.left); 
+        transform.FindChild("Rings").localRotation = Quaternion.EulerAngles(3f* attribute_value["ring"]*Vector3.left); 
     }
 
     protected override void update_my_moon()
