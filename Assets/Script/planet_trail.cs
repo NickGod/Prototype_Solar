@@ -3,9 +3,9 @@ using System.Collections;
 
 public class planet_trail : MonoBehaviour {    
     public int SegmentCount;
-    [Range(1f,8f)]
+    [Range(0f,8f)]
     public float XRadius;
-    [Range(1f, 10f)]
+    [Range(0f, 10f)]
     public float YRadius;
     public bool occupied;
     

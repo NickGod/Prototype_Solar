@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class sun_behaviour : planet_behavior {
 
 	// Use this for initialization
-	void Start () {
+	void Awake () {
         attribute_init();
         activate("color");
         activate("size");
@@ -15,12 +15,14 @@ public class sun_behaviour : planet_behavior {
 	
 	// Update is called once per frame
 	void Update () {
+        transform.GetChild(0).LookAt(Camera.main.transform);
         switch (my_type)
         {
             case planet_type.manipulating:
-                update_UI(1);
+                update_UI(2);
                 return;
             case planet_type.real_planet:
+                update_UI(3);
                 trail_rotate(_xradius, _yradius, public_spin_spd);
                 return;
             default:
@@ -29,23 +31,6 @@ public class sun_behaviour : planet_behavior {
 
     }
 
-    void update_UI(int specs = 0)
-    {
-        Text _specs;
-        _specs = GetComponentInChildren<Text>();
-        if (specs == 1)
-        {
-            string buffer = " ";
-            foreach (string str in attrList)
-            {
-                buffer += str;
-                buffer += ":" + attribute_value[str].ToString("F2") + " ";
-            }
-            _specs.text = buffer;
-        }
-        else
-            _specs.text = "MyPlanet";
-    }
 
     protected override void update_my_color()
     {

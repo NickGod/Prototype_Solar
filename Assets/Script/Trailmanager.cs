@@ -44,6 +44,7 @@ public class Trailmanager : MonoBehaviour {
             return false;
         }
 
+        _pt.GetComponent<LineRenderer>().enabled = true;
         _pb.self_init(_pt);
         _pb.my_type = planet_behavior.planet_type.real_planet;
         return true;
@@ -70,7 +71,7 @@ public class Trailmanager : MonoBehaviour {
             Debug.LogWarning("Too many trails, exceed the upper bound.");
             return null;
         }
-        GameObject _trail = Instantiate(transform.GetChild(0).gameObject);
+        GameObject _trail = Instantiate(transform.GetChild(1).gameObject);
         
         //calculate parameters for new trail
         planet_trail last_trail = transform.GetChild(_ind - 1).GetComponent<planet_trail>();

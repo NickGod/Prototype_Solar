@@ -35,7 +35,7 @@ public class hand : MonoBehaviour {
         OnClass,
         OnObject
     }
-    static State _myState = State.Idle;//TODO: change back to Prepare after testing
+    static State _myState = State.Prepare;
 
     //aiming and grabbing/pointing
     bool _isFist = false;
@@ -165,6 +165,7 @@ public class hand : MonoBehaviour {
                 }
                 if (IsConfirmed()) {
                     _confirmed = !_confirmed;
+                    _editTrf.GetComponent<planet_behavior>().flip_stats();
                 }
                 
             }
@@ -180,7 +181,6 @@ public class hand : MonoBehaviour {
                 if (IsShooting()) {
                     RaycastHit hit;
                     Ray shootingRay = new Ray(_rightIndex.position, _rightIndex.right);
-
                     if (Physics.Raycast(shootingRay, out hit)) {
                         if (_myState == State.Prepare) {
                             Transform _hittingStuff = hit.collider.gameObject.transform;
@@ -191,8 +191,8 @@ public class hand : MonoBehaviour {
                                     _sunInitButton.SetActive(true);
                                     //INDO: enable solar system
                                 } else if (_hittingStuff.name == "step2") {
-                                    //TODO: enable sun
-                                    //TODO: set _editTrf to sun
+                                    //INDO: enable sun
+                                    //INDO: set _editTrf to sun
                                     Destroy(_hittingStuff.gameObject);
 
                                     _solarEnv.SetActive(true);

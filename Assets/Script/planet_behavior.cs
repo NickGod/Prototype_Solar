@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class planet_behavior : MonoBehaviour {
    
@@ -10,6 +11,7 @@ public class planet_behavior : MonoBehaviour {
     public enum planet_type {class_model,in_hand,class_change,manipulating,real_planet};
     public planet_type my_type;
     public bool highlighted;
+   
 
     protected const float self_spin_spd = 0.965f;
     protected const float public_spin_spd = 0.606f;
@@ -38,6 +40,7 @@ public class planet_behavior : MonoBehaviour {
 
     private float inve_scale=0.2f;
     private int roulette = 0;
+    private bool ui_stats = false;
 
     #region public methods
     public bool attribute_init(Dictionary<string, bool> clone_from=null,bool init=true) {
@@ -100,10 +103,12 @@ public class planet_behavior : MonoBehaviour {
             update_attrList();
             update_look();
             //change all my children
-            foreach (Transform ch in come_from.GetComponent<planet_behavior>().my_children) {
-                ch.GetComponent<planet_behavior>().attribute_init(activate_attribute,false);
-                Debug.Log(gameObject.name + "should be changed by" + come_from.name);
-                Debug.Log("parent class is being changed.");
+            if (come_from != null) {
+                foreach (Transform ch in come_from.GetComponent<planet_behavior>().my_children) {
+                    ch.GetComponent<planet_behavior>().attribute_init(activate_attribute, false);
+                    Debug.Log(gameObject.name + "should be changed by" + come_from.name);
+                    Debug.Log("parent class is being changed.");
+                }
             }
             return true;
         }
@@ -116,6 +121,8 @@ public class planet_behavior : MonoBehaviour {
     public void delete_me() {
         if (target_trail != null) {
             target_trail.GetComponent<planet_trail>().occupied = false;
+            target_trail.GetComponent<LineRenderer>().enabled = false;
+
         }
         Destroy(gameObject);
     }
@@ -187,6 +194,7 @@ public class planet_behavior : MonoBehaviour {
                     Debug.Log("I am added in to my parent:" + come_from.name);
                     hand_to_call.GetOutOfList(gameObject.transform);
                     Debug.Log("Goes to manipulate.");
+                    transform.localScale = Vector3.one * 0.7f;
                     transform.position = GameObject.Find("edit_spot_changing").transform.position + Vector3.up;
                     return transform;
                 }      
@@ -260,6 +268,10 @@ public class planet_behavior : MonoBehaviour {
         transform.position += 0.05f*(taret_pos - transform.position);
 
     }
+
+    public void flip_stats() {
+        ui_stats = !ui_stats;
+    }
     #endregion
 
     #region protected methods
@@ -308,6 +320,41 @@ public class planet_behavior : MonoBehaviour {
                     return;
             }
         
+    }
+
+    protected void update_UI(int specs = 0) {
+        Text earth_specs;
+        earth_specs = GetComponentInChildren<Text>();
+        if (specs == 1) {
+            string buffer = "Activating:";
+            foreach (string str in attrList) {
+                buffer += str;
+                buffer += " ";
+            }
+            earth_specs.text = buffer;
+        } else if (specs == 2) {
+            string buffer = "";
+            if (!ui_stats) {
+                if (attrList.Count == 0) {
+                    buffer = "No attribute was added.";
+                } else {
+                    buffer += "<- ";
+                    buffer += "Changing: " + current_attribute(0);
+                    buffer += " ->";
+                }
+            } else
+                buffer += current_attribute(0) +" : "+ attribute_value[current_attribute(0)].ToString("F2");
+            earth_specs.text = buffer;
+        } else if (specs == 3) {
+            string buffer = "";
+            foreach (string str in attrList) {
+                buffer += str + " ";
+            }
+            if(come_from!=null)
+                buffer += "come from:" + come_from.GetHashCode().ToString();
+            earth_specs.text = buffer;
+        } else
+            earth_specs.text = "MyPlanet"+transform.GetHashCode().ToString();
     }
 
     private void revert_changes() {

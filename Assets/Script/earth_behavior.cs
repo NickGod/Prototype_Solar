@@ -5,6 +5,8 @@ using System.Collections.Generic;
 
 public class earth_behavior : planet_behavior {
     public static readonly Color[] mycolors = { Color.white, Color.red, Color.blue, Color.green };
+
+  
     void Awake() {
         attribute_init();
         my_children = new List<Transform>();
@@ -60,41 +62,6 @@ public class earth_behavior : planet_behavior {
 
     }
 
-    void update_UI(int specs=0)
-    {
-        Text earth_specs;
-        earth_specs = GetComponentInChildren<Text>();
-        if (specs == 1)
-        {
-            string buffer = "Activating:";
-            foreach (string str in attrList)
-            {
-                buffer += str;
-                buffer += " ";
-            }
-            earth_specs.text = buffer;
-        }
-        else if (specs == 2) {
-            string buffer = "";
-            if (attrList.Count == 0) {
-                buffer = "No attribute was added.";
-            } else {
-                buffer += "<- ";
-                buffer += "Changing: "+current_attribute(0);
-                buffer += " ->";
-            }
-            earth_specs.text = buffer;
-        } 
-        else if (specs == 3) {
-            string buffer = "";
-            foreach (string str in attrList ) {
-                buffer += str + " ";
-            }
-            earth_specs.text = buffer;
-        } 
-        else
-            earth_specs.text = "MyPlanet";
-    }
 
     void rotate_on_trail() {
         trail_rotate(_xradius, _yradius, public_spin_spd);
@@ -145,7 +112,7 @@ public class earth_behavior : planet_behavior {
     }
 
     protected override void update_my_size() {
-        transform.localScale= (1f + 0.5f * +attribute_value["size"]) * Vector3.one;
+        transform.localScale= (0.5f + 0.5f * +attribute_value["size"]) * Vector3.one;
     }
 
 
