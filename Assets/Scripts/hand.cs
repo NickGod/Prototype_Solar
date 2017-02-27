@@ -60,6 +60,7 @@ public class hand : MonoBehaviour {
     static bool isIndexFound = false;
     LineRenderer lineRender;
 
+    int layerMask = 1 << 8;
     void Start() {
         lineRender = GetComponent<LineRenderer>();
     }
@@ -75,23 +76,7 @@ public class hand : MonoBehaviour {
 
             //calling inventory based on left hand index
             if (_myState == State.Idle) {
-                if (IsInventoryUp()) {
-                    _inventoryTimer += Time.deltaTime;
-                } else {
-                    _inventoryTimer = 0.0f;
-                    if (_isInventory) {
-                        //TODO: inventory off animation and related mehanics here
-                        transform.GetChild(0).gameObject.SetActive(false);
-                    }
-                    _isInventory = false;
-                }
-                if (_inventoryTimer >= _inventoryTime && !_isInventory) {
-                    // this function only call once for each index up
-                    // there is up time for inventory to appear
-                    //TODO: inventory on animation and related mechanics here
-                    _isInventory = true;
-                    transform.GetChild(0).gameObject.SetActive(true);
-                }
+                CheckInventory();
             }
         } else {
             //for right hand
@@ -237,6 +222,7 @@ public class hand : MonoBehaviour {
                                 //}
                                 _editTrf = null;
                                 _myState = State.Idle;
+                                CheckInventory();
                             }
                         } else if (_myState == State.OnObject) {
                             //INDO: clicking button of "instantiate"
@@ -246,6 +232,7 @@ public class hand : MonoBehaviour {
                                 _hittedStuff.SendMessage("highlight");
                                 _myState = State.Idle;
                                 _editTrf = null;
+                                CheckInventory();
                             }
                         }
                     }
@@ -261,8 +248,9 @@ public class hand : MonoBehaviour {
                     Ray draggingRay = new Ray(_rightIndex.position, _rightIndex.right);
 
                     Vector3 _target;
-                    if (Physics.Raycast(draggingRay, out hit)) {
+                    if (Physics.Raycast(draggingRay, out hit, layerMask)) {
                         GameObject _hitObj = hit.collider.gameObject;
+                        Debug.Log("hit the target" + _hitObj.name);
                         if (_hitObj.tag == Tags.Reachable) {
                             _target = _hitObj.transform.position;
                         } else {
@@ -334,6 +322,26 @@ public class hand : MonoBehaviour {
     void OnTriggerExit(Collider other) {
         if (other.gameObject.tag == Tags.Grabbable) {
             trfList.Remove(other.transform);
+        }
+    }
+
+    void CheckInventory() {
+        if (IsInventoryUp()) {
+            _inventoryTimer += Time.deltaTime;
+        } else {
+            _inventoryTimer = 0.0f;
+            if (_isInventory) {
+                //TODO: inventory off animation and related mehanics here
+                transform.GetChild(0).gameObject.SetActive(false);
+            }
+            _isInventory = false;
+        }
+        if (_inventoryTimer >= _inventoryTime && !_isInventory) {
+            // this function only call once for each index up
+            // there is up time for inventory to appear
+            //TODO: inventory on animation and related mechanics here
+            _isInventory = true;
+            transform.GetChild(0).gameObject.SetActive(true);
         }
     }
 
