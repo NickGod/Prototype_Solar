@@ -380,7 +380,10 @@ public class hand : MonoBehaviour {
     bool IsShooting() {
         if (isRightHand) {
             if (IsAiming()) {
-                return OVRInput.GetDown(OVRInput.Button.SecondaryHandTrigger);
+
+                Debug.Log("Shooting");
+                return OVRInput.GetDown(OVRInput.Button.One) || OVRInput.GetDown(OVRInput.Button.Two) 
+                    || OVRInput.GetDown(OVRInput.Button.SecondaryThumbstickDown);
             }
         }
         return false;
@@ -400,7 +403,9 @@ public class hand : MonoBehaviour {
 
     bool IsConfirmed() {
         if (isRightHand) {
-            return OVRInput.GetDown(OVRInput.Button.SecondaryHandTrigger);
+            Debug.Log("Confirmed");
+            return OVRInput.GetDown(OVRInput.Button.One) || OVRInput.GetDown(OVRInput.Button.Two)
+                    || OVRInput.GetDown(OVRInput.Button.SecondaryThumbstickDown);
         }
         return false;
     }
@@ -443,16 +448,14 @@ public class hand : MonoBehaviour {
         if (isRightHand) {
             indexFinger = OVRInput.Button.SecondaryIndexTrigger;
             middleFinger = OVRInput.Button.SecondaryHandTrigger;
-            thumb = OVRInput.Get(OVRInput.Touch.SecondaryThumbRest) || OVRInput.Get(OVRInput.Touch.One) || OVRInput.Get(OVRInput.Touch.Two);
         } else {
             indexFinger = OVRInput.Button.PrimaryIndexTrigger;
             middleFinger = OVRInput.Button.PrimaryHandTrigger;
-            thumb = OVRInput.Get(OVRInput.Touch.PrimaryThumbRest) || OVRInput.Get(OVRInput.Touch.Three) || OVRInput.Get(OVRInput.Touch.Four);
         }
         bool index = OVRInput.Get(indexFinger);
         bool middle = OVRInput.Get(middleFinger);
 
-        return index && middle && thumb;
+        return index && middle;
     }
 
     //bool IsBothFist() {
