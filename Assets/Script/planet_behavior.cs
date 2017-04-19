@@ -335,6 +335,7 @@ public class planet_behavior : MonoBehaviour {
         } else if (specs == 2) {
             string buffer = "";
             if (!ui_stats) {
+                Debug.Log("There is no UI states to be shown.");
                 if (attrList.Count == 0) {
                     buffer = "No attribute was added.";
                 } else {
@@ -342,8 +343,13 @@ public class planet_behavior : MonoBehaviour {
                     buffer += "Changing: " + current_attribute(0);
                     buffer += " ->";
                 }
-            } else
-                buffer += current_attribute(0) +" : "+ attribute_value[current_attribute(0)].ToString("F2");
+            } 
+            else {
+                if(current_attribute(0)!= null)
+                    buffer += current_attribute(0) + " : " + attribute_value[current_attribute(0)].ToString("F2");
+                else
+                    buffer = "No attribute was added.";
+            }
             earth_specs.text = buffer;
         } else if (specs == 3) {
             string buffer = "";

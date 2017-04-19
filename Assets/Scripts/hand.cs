@@ -200,9 +200,9 @@ public class hand : MonoBehaviour {
                             // it is a real planet object
                             if (underCtrObj.tag == Tags.Grabbable && !_grabbed
                                 && underCtrObj.GetComponent<planet_behavior>().my_type == planet_behavior.planet_type.real_planet) {
+                                Debug.Log("YIIII");
                                 _pointingTrf = underCtrObj.transform;
                                 _pointingTrf = _pointingTrf.GetComponent<planet_behavior>().OnGrab();
-                                Debug.Log("pointint and dragging");
                             }
                             
                         } else if (_myState == State.OnClass) {
@@ -250,7 +250,6 @@ public class hand : MonoBehaviour {
                     Vector3 _target;
                     if (Physics.Raycast(draggingRay, out hit, layerMask)) {
                         GameObject _hitObj = hit.collider.gameObject;
-                        Debug.Log("hit the target" + _hitObj.name);
                         if (_hitObj.tag == Tags.Reachable) {
                             _target = _hitObj.transform.position;
                         } else {
@@ -380,10 +379,8 @@ public class hand : MonoBehaviour {
     bool IsShooting() {
         if (isRightHand) {
             if (IsAiming()) {
-
-                Debug.Log("Shooting");
                 return OVRInput.GetDown(OVRInput.Button.One) || OVRInput.GetDown(OVRInput.Button.Two) 
-                    || OVRInput.GetDown(OVRInput.Button.SecondaryThumbstickDown);
+                    || OVRInput.GetDown(OVRInput.Button.SecondaryThumbstick);
             }
         }
         return false;
@@ -393,7 +390,7 @@ public class hand : MonoBehaviour {
     bool IsInShootingGesture() {
         if (isRightHand) {
             if (IsAiming()) {
-                if (OVRInput.Get(OVRInput.Button.SecondaryHandTrigger)) {
+                if (OVRInput.Get(OVRInput.Button.One) || OVRInput.Get(OVRInput.Button.Two) || OVRInput.Get(OVRInput.Button.SecondaryThumbstick)) {
                     return true;
                 }
             }
@@ -403,9 +400,8 @@ public class hand : MonoBehaviour {
 
     bool IsConfirmed() {
         if (isRightHand) {
-            Debug.Log("Confirmed");
             return OVRInput.GetDown(OVRInput.Button.One) || OVRInput.GetDown(OVRInput.Button.Two)
-                    || OVRInput.GetDown(OVRInput.Button.SecondaryThumbstickDown);
+                    || OVRInput.GetDown(OVRInput.Button.SecondaryThumbstick);
         }
         return false;
     }
